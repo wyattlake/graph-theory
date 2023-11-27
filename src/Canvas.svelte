@@ -1,6 +1,7 @@
 <script lang="ts">
     import { onMount, onDestroy, setContext } from "svelte";
     import { Graph, Position, Node, Edge } from "$lib/graph";
+    import type { HTMLSelectAttributes } from "svelte/elements";
 
     export let width: number,
         height: number,
@@ -11,12 +12,30 @@
 
     let graph = new Graph([], []);
 
+    let options = [
+        { id: 1, text: `Create` },
+        { id: 2, text: `Move` },
+        { id: 3, text: `Delete` },
+    ];
+
     const nodeRadius = 10;
 
     let draggingNode: Node | null = null;
-    let moved = false;
 
     let edgeStart: Node | null = null;
+
+    let selected: HTMLSelectAttributes;
+
+    function getNodeFromPosition(position: Position) {
+        for (var node of graph.nodes) {
+            const distance = Position.distance(node.position, position);
+            if (distance < nodeRadius + 2) {
+                return node;
+            }
+        }
+
+        return null;
+    }
 
     onMount(() => {
         let context: CanvasRenderingContext2D = canvas.getContext("2d")!;
@@ -50,35 +69,41 @@
                 if (clickedNode != null) {
                     draggingNode = clickedNode;
                 } else {
-                    graph.nodes.push(Node.fromPosition(clickPos));
+                    if (selected.id == "1") {
+                        graph.nodes.push(Node.fromPosition(clickPos));
+                    }
                 }
             }
-
-            moved = false;
         });
 
         addEventListener("mousemove", (event) => {
-            moved = true;
             if (draggingNode != null) {
-                let mousePosition = getCanvasPosition(event);
-                if (mousePosition != null) {
-                    draggingNode.position = mousePosition;
+                if (selected.id == "2") {
+                    let mousePosition = getCanvasPosition(event);
+                    if (mousePosition != null) {
+                        draggingNode.position = mousePosition;
+                    }
                 }
             }
         });
 
         addEventListener("mouseup", (event) => {
             if (draggingNode != null) {
-                if (!moved) {
-                    if (edgeStart == null) {
-                        edgeStart = draggingNode;
-                    } else if (edgeStart != draggingNode) {
-                        graph.edges.push(new Edge(edgeStart, draggingNode));
-                        edgeStart = null;
+                if (selected.id == "1") {
+                    let releasePos = getCanvasPosition(event);
+                    if (releasePos == null) {
+                        draggingNode = null;
+                        return;
                     }
+
+                    let releaseNode = getNodeFromPosition(releasePos);
+                    if (releaseNode == null) {
+                        return;
+                    }
+
+                    graph.edges.push(new Edge(draggingNode, releaseNode));
                 }
             }
-
             draggingNode = null;
         });
 
@@ -129,9 +154,30 @@
     });
 </script>
 
-<canvas
-    bind:this={canvas}
-    width={width * pixelRatio}
-    height={height * pixelRatio}
-    style="width: {width}px; height: {height}px;border: 1px solid black"
-/>
+<div class="container">
+    <canvas
+        bind:this={canvas}
+        width={width * pixelRatio}
+        height={height * pixelRatio}
+        style="width: {width}px; height: {height}px;border: 1px solid black"
+    />
+
+    <select bind:value={selected}>
+        {#each options as option}
+            <option value={option}>
+                {option.text}
+            </option>
+        {/each}
+    </select>
+</div>
+
+<style>
+    .container {
+        display: flex;
+        flex-direction: column;
+    }
+
+    select {
+        width: 100px;
+    }
+</style>

@@ -3,4 +3,4 @@
 </script>
 
 <h1>Graph Theory</h1>
-<Canvas width={1000} height={300} />
+<Canvas width={500} height={300} />
