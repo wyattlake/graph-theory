@@ -6,10 +6,18 @@ class Position {
         this.x = x;
         this.y = y;
     }
+
+    static distance(start: Position, end: Position) {
+        return Math.sqrt((start.x - end.x) ** 2 + (start.y - end.y) ** 2);
+    }
 }
 
 class Node {
     position: Position;
+
+    static fromPosition(position: Position) {
+        return new Node(position.x, position.y);
+    }
 
     constructor(x: number, y: number) {
         this.position = new Position(x, y);

@@ -11,6 +11,10 @@
 
     let graph = new Graph([], []);
 
+    const nodeRadius = 10;
+
+    let draggingNode: Node | null = null;
+
     onMount(() => {
         let context: CanvasRenderingContext2D = canvas.getContext("2d")!;
         const canvasBounds = canvas.getBoundingClientRect();
@@ -26,11 +30,43 @@
             }
         }
 
+        function getNodeFromPosition(clickPosition: Position) {
+            for (var node of graph.nodes) {
+                if (
+                    Position.distance(node.position, clickPosition) < nodeRadius
+                ) {
+                    return node;
+                }
+            }
+            return null;
+        }
+
         addEventListener("mousedown", (event) => {
             let clickPos = getCanvasPosition(event);
             if (clickPos != null) {
-                graph.nodes.push(new Node(clickPos.x, clickPos.y));
+                let clickedNode = getNodeFromPosition(clickPos);
+                if (clickedNode == null) {
+                    graph.nodes.push(Node.fromPosition(clickPos));
+                } else {
+                    draggingNode = clickedNode;
+                }
             }
+        });
+
+        addEventListener("mousemove", (event) => {
+            if (draggingNode != null) {
+                let mousePosition = getCanvasPosition(event);
+                if (mousePosition != null) {
+                    draggingNode.position = mousePosition;
+                }
+            }
+        });
+
+        addEventListener("mouseup", (event) => {
+            let releasePos = getCanvasPosition(event);
+            if (releasePos != null) {
+            }
+            draggingNode = null;
         });
 
         function drawFrame(dt: number) {
@@ -41,7 +77,7 @@
                 context.arc(
                     node.position.x,
                     node.position.y,
-                    10,
+                    nodeRadius,
                     0,
                     2 * Math.PI,
                     false
