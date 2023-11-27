@@ -1,6 +1,6 @@
 <script lang="ts">
     import { onMount, onDestroy, setContext } from "svelte";
-    import { Graph, Position, Node } from "$lib/graph";
+    import { Graph, Position, Node, Edge } from "$lib/graph";
 
     export let width: number,
         height: number,
@@ -14,6 +14,9 @@
     const nodeRadius = 10;
 
     let draggingNode: Node | null = null;
+    let moved = false;
+
+    let edgeStart: Node | null = null;
 
     onMount(() => {
         let context: CanvasRenderingContext2D = canvas.getContext("2d")!;
@@ -30,30 +33,32 @@
             }
         }
 
-        function getNodeFromPosition(clickPosition: Position) {
-            for (var node of graph.nodes) {
-                if (
-                    Position.distance(node.position, clickPosition) < nodeRadius
-                ) {
-                    return node;
-                }
-            }
-            return null;
-        }
-
         addEventListener("mousedown", (event) => {
             let clickPos = getCanvasPosition(event);
             if (clickPos != null) {
-                let clickedNode = getNodeFromPosition(clickPos);
-                if (clickedNode == null) {
-                    graph.nodes.push(Node.fromPosition(clickPos));
-                } else {
+                let clickedNode = null;
+
+                for (var node of graph.nodes) {
+                    const distance = Position.distance(node.position, clickPos);
+                    if (distance < nodeRadius) {
+                        clickedNode = node;
+                    } else if (distance < nodeRadius * 2 + 1) {
+                        return;
+                    }
+                }
+
+                if (clickedNode != null) {
                     draggingNode = clickedNode;
+                } else {
+                    graph.nodes.push(Node.fromPosition(clickPos));
                 }
             }
+
+            moved = false;
         });
 
         addEventListener("mousemove", (event) => {
+            moved = true;
             if (draggingNode != null) {
                 let mousePosition = getCanvasPosition(event);
                 if (mousePosition != null) {
@@ -63,14 +68,30 @@
         });
 
         addEventListener("mouseup", (event) => {
-            let releasePos = getCanvasPosition(event);
-            if (releasePos != null) {
+            if (draggingNode != null) {
+                if (!moved) {
+                    if (edgeStart == null) {
+                        edgeStart = draggingNode;
+                    } else if (edgeStart != draggingNode) {
+                        graph.edges.push(new Edge(edgeStart, draggingNode));
+                        edgeStart = null;
+                    }
+                }
             }
+
             draggingNode = null;
         });
 
         function drawFrame(dt: number) {
             context.clearRect(0, 0, width, height);
+
+            for (var edge of graph.edges) {
+                context.beginPath();
+                context.moveTo(edge.start.position.x, edge.start.position.y);
+                context.lineTo(edge.end.position.x, edge.end.position.y);
+
+                context.stroke();
+            }
 
             for (var node of graph.nodes) {
                 context.beginPath();
