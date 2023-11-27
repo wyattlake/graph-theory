@@ -67,7 +67,12 @@
                 }
 
                 if (clickedNode != null) {
-                    draggingNode = clickedNode;
+                    if (selected.id == "3") {
+                        console.log(clickedNode);
+                        graph.removeNode(clickedNode);
+                    } else {
+                        draggingNode = clickedNode;
+                    }
                 } else {
                     if (selected.id == "1") {
                         graph.nodes.push(Node.fromPosition(clickPos));

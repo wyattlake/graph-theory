@@ -32,6 +32,10 @@ class Edge {
         this.start = start;
         this.end = end;
     }
+
+    contains(node: Node) {
+        return this.start == node || this.end == node;
+    }
 }
 
 class Graph {
@@ -41,6 +45,21 @@ class Graph {
     constructor(nodes: Node[], edges: []) {
         this.nodes = nodes;
         this.edges = edges;
+    }
+
+    removeNode(removeNode: Node) {
+        let removeIdx = this.nodes.indexOf(removeNode);
+
+        if (removeIdx != -1) {
+            console.log(removeIdx);
+            this.nodes.splice(removeIdx, 1);
+            for (let i = 0; i < this.edges.length; i++) {
+                if (this.edges[i].contains(removeNode)) {
+                    this.edges.splice(i, 1);
+                    i--;
+                }
+            }
+        }
     }
 }
 
