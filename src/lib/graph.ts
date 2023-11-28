@@ -57,10 +57,12 @@ class Node {
 class Edge {
     start: Node;
     end: Node;
+    color: string;
 
     constructor(start: Node, end: Node) {
         this.start = start;
         this.end = end;
+        this.color = "rgb(132, 170, 255)";
     }
 
     contains(node: Node) {

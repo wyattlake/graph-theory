@@ -78,28 +78,33 @@
                     if (selected.id == "3") {
                         graph.removeNode(clickedNode);
                     } else if (selected.id == "4") {
-                        clickedNode.color = "rgb(234, 90, 90)";
+                        function DFS(node: Node) {
+                            let visited: Array<Node> = [];
 
-                        function DFS(nodeIdx: number) {
-                            let visited = new Array(graph.nodes.length);
-                            for (let i = 0; i < graph.nodes.length; i++) {
-                                visited[i] = false;
-                            }
-
-                            DFSUtil(nodeIdx, visited);
+                            DFSUtil(node, visited);
                         }
 
-                        function DFSUtil(
-                            nodeIdx: number,
-                            visited: Array<boolean>
-                        ) {
-                            visited[nodeIdx] = true;
+                        function DFSUtil(node: Node, visited: Array<Node>) {
+                            node.color = "rgb(234, 90, 90)";
+                            visited.push(node);
 
-                            for (var edge of graph.edges) {
-                                if (edge.contains(clickedNode!)) {
+                            for (var edge of node.edges) {
+                                if (visited.length == graph.nodes.length) {
+                                    return;
+                                }
+
+                                edge.color = "rgb(255, 129, 129)";
+
+                                let otherNode =
+                                    edge.start == node ? edge.end : edge.start;
+
+                                if (!visited.includes(otherNode)) {
+                                    DFSUtil(otherNode, visited);
                                 }
                             }
                         }
+
+                        DFS(clickedNode);
                     } else {
                         draggingNode = clickedNode;
                     }
@@ -206,6 +211,7 @@
             context.clearRect(0, 0, width, height);
 
             for (var edge of graph.edges) {
+                context.strokeStyle = edge.color;
                 context.beginPath();
                 context.moveTo(edge.start.position.x, edge.start.position.y);
                 context.lineTo(edge.end.position.x, edge.end.position.y);
