@@ -16,6 +16,7 @@
         { id: 1, text: `Create` },
         { id: 2, text: `Move` },
         { id: 3, text: `Delete` },
+        { id: 4, text: `DFS` },
     ];
 
     const nodeRadius = 7;
@@ -58,13 +59,16 @@
         addEventListener("mousedown", (event) => {
             let clickPos = getCanvasPosition(event);
             if (clickPos != null) {
-                let clickedNode = null;
+                let clickedNode: Node | null = null;
+                let nodeIdx = -1;
                 let closestDistance = Infinity;
 
-                for (var node of graph.nodes) {
+                for (let i = 0; i < graph.nodes.length; i++) {
+                    let node = graph.nodes[i];
                     const distance = Position.distance(node.position, clickPos);
                     if (distance < nodeRadius + nodeBuffer) {
                         clickedNode = node;
+                        nodeIdx = i;
                     } else if (distance < closestDistance) {
                         closestDistance = distance;
                     }
@@ -73,6 +77,29 @@
                 if (clickedNode != null) {
                     if (selected.id == "3") {
                         graph.removeNode(clickedNode);
+                    } else if (selected.id == "4") {
+                        clickedNode.color = "rgb(234, 90, 90)";
+
+                        function DFS(nodeIdx: number) {
+                            let visited = new Array(graph.nodes.length);
+                            for (let i = 0; i < graph.nodes.length; i++) {
+                                visited[i] = false;
+                            }
+
+                            DFSUtil(nodeIdx, visited);
+                        }
+
+                        function DFSUtil(
+                            nodeIdx: number,
+                            visited: Array<boolean>
+                        ) {
+                            visited[nodeIdx] = true;
+
+                            for (var edge of graph.edges) {
+                                if (edge.contains(clickedNode!)) {
+                                }
+                            }
+                        }
                     } else {
                         draggingNode = clickedNode;
                     }
@@ -90,8 +117,8 @@
                                 let firstEdge = new Edge(edge.start, newNode);
                                 let secondEdge = new Edge(newNode, edge.end);
                                 graph.nodes.push(newNode);
-                                graph.edges.push(firstEdge);
-                                graph.edges.push(secondEdge);
+                                graph.addEdge(firstEdge);
+                                graph.addEdge(secondEdge);
                                 graph.removeEdge(edge);
                                 draggingNode = newNode;
                                 return;
@@ -150,11 +177,9 @@
                                 let firstEdge = new Edge(edge.start, newNode);
                                 let secondEdge = new Edge(newNode, edge.end);
                                 graph.nodes.push(newNode);
-                                graph.edges.push(firstEdge);
-                                graph.edges.push(secondEdge);
-                                graph.edges.push(
-                                    new Edge(draggingNode, newNode)
-                                );
+                                graph.addEdge(firstEdge);
+                                graph.addEdge(secondEdge);
+                                graph.addEdge(new Edge(draggingNode, newNode));
                                 graph.removeEdge(edge);
                                 draggingNode = null;
                                 return;
@@ -162,7 +187,7 @@
                         }
                         let newNode = Node.fromPosition(releasePos);
                         graph.nodes.push(newNode);
-                        graph.edges.push(new Edge(draggingNode, newNode));
+                        graph.addEdge(new Edge(draggingNode, newNode));
                         draggingNode = null;
                         return;
                     }
@@ -170,7 +195,7 @@
                     let newEdge = new Edge(draggingNode, releaseNode);
 
                     if (!graph.containsEdge(newEdge)) {
-                        graph.edges.push(newEdge);
+                        graph.addEdge(newEdge);
                     }
                 }
             }
@@ -189,6 +214,7 @@
             }
 
             for (var node of graph.nodes) {
+                context.fillStyle = node.color;
                 context.beginPath();
                 context.arc(
                     node.position.x,

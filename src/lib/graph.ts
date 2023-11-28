@@ -14,13 +14,43 @@ class Position {
 
 class Node {
     position: Position;
+    edges: Edge[];
+    adjacent: Node[];
+    color: string;
 
     static fromPosition(position: Position) {
         return new Node(position.x, position.y);
     }
 
+    addEdge(edge: Edge) {
+        this.edges.push(edge);
+
+        if (edge.start == this) {
+            this.adjacent.push(edge.end);
+        } else {
+            this.adjacent.push(edge.start);
+        }
+    }
+
+    removeEdge(edge: Edge) {
+        const index = this.edges.indexOf(edge);
+
+        if (index > -1) {
+            this.edges.splice(index, 1);
+
+            if (edge.start == this) {
+                this.adjacent.splice(this.adjacent.indexOf(edge.end), 1);
+            } else {
+                this.adjacent.splice(this.adjacent.indexOf(edge.start), 1);
+            }
+        }
+    }
+
     constructor(x: number, y: number) {
         this.position = new Position(x, y);
+        this.edges = [];
+        this.adjacent = [];
+        this.color = "rgb(75, 130, 255)";
     }
 }
 
@@ -79,16 +109,20 @@ class Graph {
         this.edges = edges;
     }
 
+    addEdge(edge: Edge) {
+        this.edges.push(edge);
+
+        edge.start.addEdge(edge);
+        edge.end.addEdge(edge);
+    }
+
     removeEdge(removeEdge: Edge) {
         let removeIdx = this.edges.indexOf(removeEdge);
 
         if (removeIdx != -1) {
-            for (let i = 0; i < this.edges.length; i++) {
-                if (this.edges[i] == removeEdge) {
-                    this.edges.splice(i, 1);
-                    i--;
-                }
-            }
+            this.edges.splice(removeIdx, 1);
+            removeEdge.start.removeEdge(removeEdge);
+            removeEdge.end.removeEdge(removeEdge);
         }
     }
 
@@ -97,11 +131,10 @@ class Graph {
 
         if (removeIdx != -1) {
             this.nodes.splice(removeIdx, 1);
-            for (let i = 0; i < this.edges.length; i++) {
-                if (this.edges[i].contains(removeNode)) {
-                    this.edges.splice(i, 1);
-                    i--;
-                }
+
+            for (let i = 0; i < removeNode.edges.length; i++) {
+                this.removeEdge(removeNode.edges[i]);
+                i--;
             }
         }
     }
