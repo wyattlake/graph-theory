@@ -36,6 +36,19 @@ class Edge {
     contains(node: Node) {
         return this.start == node || this.end == node;
     }
+
+    distanceToPoint(position: Position) {
+        let dy = this.end.position.y - this.start.position.y;
+        let dx = this.end.position.x - this.start.position.x;
+        let a = dy;
+        let b = -dx;
+        let c = dx * this.start.position.y - dy * this.start.position.x;
+
+        return (
+            Math.abs(a * position.x + b * position.y + c) /
+            Math.sqrt(a * a + b * b)
+        );
+    }
 }
 
 class Graph {
@@ -47,11 +60,23 @@ class Graph {
         this.edges = edges;
     }
 
+    removeEdge(removeEdge: Edge) {
+        let removeIdx = this.edges.indexOf(removeEdge);
+
+        if (removeIdx != -1) {
+            for (let i = 0; i < this.edges.length; i++) {
+                if (this.edges[i] == removeEdge) {
+                    this.edges.splice(i, 1);
+                    i--;
+                }
+            }
+        }
+    }
+
     removeNode(removeNode: Node) {
         let removeIdx = this.nodes.indexOf(removeNode);
 
         if (removeIdx != -1) {
-            console.log(removeIdx);
             this.nodes.splice(removeIdx, 1);
             for (let i = 0; i < this.edges.length; i++) {
                 if (this.edges[i].contains(removeNode)) {
@@ -60,6 +85,18 @@ class Graph {
                 }
             }
         }
+    }
+
+    containsEdge(edge: Edge) {
+        for (var currentEdge of this.edges) {
+            if (
+                currentEdge.contains(edge.start) &&
+                currentEdge.contains(edge.end)
+            ) {
+                return true;
+            }
+        }
+        return false;
     }
 }
 

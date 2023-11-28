@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { onMount, onDestroy, setContext } from "svelte";
+    import { onMount } from "svelte";
     import { Graph, Position, Node, Edge } from "$lib/graph";
     import type { HTMLSelectAttributes } from "svelte/elements";
 
@@ -18,7 +18,10 @@
         { id: 3, text: `Delete` },
     ];
 
-    const nodeRadius = 10;
+    const nodeRadius = 7;
+    const nodeBuffer = 2;
+    const edgeWidth = 5;
+    const edgeBuffer = 7;
 
     let draggingNode: Node | null = null;
 
@@ -29,7 +32,7 @@
     function getNodeFromPosition(position: Position) {
         for (var node of graph.nodes) {
             const distance = Position.distance(node.position, position);
-            if (distance < nodeRadius + 2) {
+            if (distance < nodeRadius * 2 + nodeBuffer) {
                 return node;
             }
         }
@@ -40,6 +43,8 @@
     onMount(() => {
         let context: CanvasRenderingContext2D = canvas.getContext("2d")!;
         const canvasBounds = canvas.getBoundingClientRect();
+
+        context.scale(pixelRatio, pixelRatio);
 
         function getCanvasPosition(event: MouseEvent) {
             const x = event.clientX - canvasBounds.left;
@@ -59,23 +64,41 @@
 
                 for (var node of graph.nodes) {
                     const distance = Position.distance(node.position, clickPos);
-                    if (distance < nodeRadius) {
+                    if (distance < nodeRadius + nodeBuffer) {
                         clickedNode = node;
-                    } else if (distance < nodeRadius * 2 + 1) {
+                    } else if (distance < nodeRadius * 2 + nodeBuffer) {
                         return;
                     }
                 }
 
                 if (clickedNode != null) {
                     if (selected.id == "3") {
-                        console.log(clickedNode);
                         graph.removeNode(clickedNode);
                     } else {
                         draggingNode = clickedNode;
                     }
                 } else {
+                    for (var edge of graph.edges) {
+                        if (edge.distanceToPoint(clickPos) < edgeBuffer) {
+                            if (selected.id == "1") {
+                                let newNode = Node.fromPosition(clickPos);
+                                let firstEdge = new Edge(edge.start, newNode);
+                                let secondEdge = new Edge(newNode, edge.end);
+                                graph.nodes.push(newNode);
+                                graph.edges.push(firstEdge);
+                                graph.edges.push(secondEdge);
+                                graph.removeEdge(edge);
+                                return;
+                            } else if (selected.id == "3") {
+                                graph.removeEdge(edge);
+                                return;
+                            }
+                        }
+                    }
                     if (selected.id == "1") {
-                        graph.nodes.push(Node.fromPosition(clickPos));
+                        let newNode = Node.fromPosition(clickPos);
+                        graph.nodes.push(newNode);
+                        draggingNode = newNode;
                     }
                 }
             }
@@ -103,10 +126,33 @@
 
                     let releaseNode = getNodeFromPosition(releasePos);
                     if (releaseNode == null) {
+                        for (var edge of graph.edges) {
+                            if (edge.distanceToPoint(releasePos) < edgeBuffer) {
+                                let newNode = Node.fromPosition(releasePos);
+                                let firstEdge = new Edge(edge.start, newNode);
+                                let secondEdge = new Edge(newNode, edge.end);
+                                graph.nodes.push(newNode);
+                                graph.edges.push(firstEdge);
+                                graph.edges.push(secondEdge);
+                                graph.edges.push(
+                                    new Edge(draggingNode, newNode)
+                                );
+                                graph.removeEdge(edge);
+                                return;
+                            }
+                        }
+                        let newNode = Node.fromPosition(releasePos);
+                        graph.nodes.push(newNode);
+                        graph.edges.push(new Edge(draggingNode, newNode));
+                        draggingNode = null;
                         return;
                     }
 
-                    graph.edges.push(new Edge(draggingNode, releaseNode));
+                    let newEdge = new Edge(draggingNode, releaseNode);
+
+                    if (!graph.containsEdge(newEdge)) {
+                        graph.edges.push(newEdge);
+                    }
                 }
             }
             draggingNode = null;
@@ -154,6 +200,11 @@
         }
 
         return gameLoop((_, dt) => {
+            context.imageSmoothingEnabled = true;
+            context.strokeStyle = "rgb(132, 170, 255)";
+            context.lineWidth = edgeWidth;
+
+            context.fillStyle = "rgb(75, 130, 255)";
             drawFrame(dt);
         });
     });
@@ -164,7 +215,7 @@
         bind:this={canvas}
         width={width * pixelRatio}
         height={height * pixelRatio}
-        style="width: {width}px; height: {height}px;border: 1px solid black"
+        style="width: {width}px; height: {height}px;"
     />
 
     <select bind:value={selected}>
@@ -184,5 +235,11 @@
 
     select {
         width: 100px;
+    }
+
+    canvas {
+        margin-bottom: 20px;
+        border: 2px solid #d9d9d9;
+        border-radius: 20px;
     }
 </style>
