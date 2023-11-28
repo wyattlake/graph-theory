@@ -61,13 +61,14 @@
             let clickPos = getCanvasPosition(event);
             if (clickPos != null) {
                 let clickedNode = null;
+                let closestDistance = Infinity;
 
                 for (var node of graph.nodes) {
                     const distance = Position.distance(node.position, clickPos);
                     if (distance < nodeRadius + nodeBuffer) {
                         clickedNode = node;
-                    } else if (distance < nodeRadius * 2 + nodeBuffer) {
-                        return;
+                    } else if (distance < closestDistance) {
+                        closestDistance = distance;
                     }
                 }
 
@@ -79,9 +80,16 @@
                     }
                 } else {
                     for (var edge of graph.edges) {
-                        if (edge.distanceToPoint(clickPos) < edgeBuffer) {
+                        let edgeDistance = edge.distanceToPoint(clickPos);
+                        if (
+                            Math.abs(edgeDistance) < edgeBuffer &&
+                            edge.withinEdge(clickPos)
+                        ) {
                             if (selected.id == "1") {
-                                let newNode = Node.fromPosition(clickPos);
+                                // let newNode = Node.fromPosition(clickPos);
+                                let newNode = Node.fromPosition(
+                                    edge.getSnappedPoint(clickPos, edgeDistance)
+                                );
                                 let firstEdge = new Edge(edge.start, newNode);
                                 let secondEdge = new Edge(newNode, edge.end);
                                 graph.nodes.push(newNode);
@@ -96,6 +104,9 @@
                         }
                     }
                     if (selected.id == "1") {
+                        if (closestDistance < nodeRadius * 2 + nodeBuffer) {
+                            return;
+                        }
                         let newNode = Node.fromPosition(clickPos);
                         graph.nodes.push(newNode);
                         draggingNode = newNode;
@@ -127,8 +138,17 @@
                     let releaseNode = getNodeFromPosition(releasePos);
                     if (releaseNode == null) {
                         for (var edge of graph.edges) {
-                            if (edge.distanceToPoint(releasePos) < edgeBuffer) {
-                                let newNode = Node.fromPosition(releasePos);
+                            let edgeDistance = edge.distanceToPoint(releasePos);
+                            if (
+                                Math.abs(edgeDistance) < edgeBuffer &&
+                                edge.withinEdge(releasePos)
+                            ) {
+                                let newNode = Node.fromPosition(
+                                    edge.getSnappedPoint(
+                                        releasePos,
+                                        edgeDistance
+                                    )
+                                );
                                 let firstEdge = new Edge(edge.start, newNode);
                                 let secondEdge = new Edge(newNode, edge.end);
                                 graph.nodes.push(newNode);

@@ -38,15 +38,36 @@ class Edge {
     }
 
     distanceToPoint(position: Position) {
-        let dy = this.end.position.y - this.start.position.y;
-        let dx = this.end.position.x - this.start.position.x;
-        let a = dy;
-        let b = -dx;
-        let c = dx * this.start.position.y - dy * this.start.position.x;
+        const dy = this.end.position.y - this.start.position.y;
+        const dx = this.end.position.x - this.start.position.x;
+        const a = dy;
+        const b = -dx;
+        const c = dx * this.start.position.y - dy * this.start.position.x;
 
+        return (a * position.x + b * position.y + c) / Math.sqrt(a * a + b * b);
+    }
+
+    getSnappedPoint(point: Position, distance: number) {
+        const dy = this.end.position.y - this.start.position.y;
+        const dx = this.end.position.x - this.start.position.x;
+
+        console.log(distance);
+
+        const slopeMagnitude = Math.sqrt(dy * dy + dx * dx);
+        return new Position(
+            point.x - distance * (dy / slopeMagnitude),
+            point.y + distance * (dx / slopeMagnitude)
+        );
+    }
+
+    withinEdge(position: Position) {
         return (
-            Math.abs(a * position.x + b * position.y + c) /
-            Math.sqrt(a * a + b * b)
+            (this.start.position.x - position.x) *
+                (this.end.position.x - position.x) <
+                10 &&
+            (this.start.position.y - position.y) *
+                (this.end.position.y - position.y) <
+                10
         );
     }
 }
