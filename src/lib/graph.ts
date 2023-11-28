@@ -51,8 +51,6 @@ class Edge {
         const dy = this.end.position.y - this.start.position.y;
         const dx = this.end.position.x - this.start.position.x;
 
-        console.log(distance);
-
         const slopeMagnitude = Math.sqrt(dy * dy + dx * dx);
         return new Position(
             point.x - distance * (dy / slopeMagnitude),

@@ -21,11 +21,9 @@
     const nodeRadius = 7;
     const nodeBuffer = 2;
     const edgeWidth = 5;
-    const edgeBuffer = 7;
+    const edgeBuffer = 10;
 
     let draggingNode: Node | null = null;
-
-    let edgeStart: Node | null = null;
 
     let selected: HTMLSelectAttributes;
 
@@ -86,7 +84,6 @@
                             edge.withinEdge(clickPos)
                         ) {
                             if (selected.id == "1") {
-                                // let newNode = Node.fromPosition(clickPos);
                                 let newNode = Node.fromPosition(
                                     edge.getSnappedPoint(clickPos, edgeDistance)
                                 );
@@ -96,6 +93,7 @@
                                 graph.edges.push(firstEdge);
                                 graph.edges.push(secondEdge);
                                 graph.removeEdge(edge);
+                                draggingNode = newNode;
                                 return;
                             } else if (selected.id == "3") {
                                 graph.removeEdge(edge);
@@ -158,6 +156,7 @@
                                     new Edge(draggingNode, newNode)
                                 );
                                 graph.removeEdge(edge);
+                                draggingNode = null;
                                 return;
                             }
                         }
