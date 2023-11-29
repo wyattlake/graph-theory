@@ -58,11 +58,13 @@ class Edge {
     start: Node;
     end: Node;
     color: string;
+    arrowColor: string;
 
     constructor(start: Node, end: Node) {
         this.start = start;
         this.end = end;
         this.color = "rgb(132, 170, 255)";
+        this.arrowColor = "rgb(75, 130, 255)";
     }
 
     contains(node: Node) {
@@ -105,17 +107,22 @@ class Edge {
 class Graph {
     nodes: Node[];
     edges: Edge[];
+    directed: boolean;
 
     constructor(nodes: Node[], edges: []) {
         this.nodes = nodes;
         this.edges = edges;
+        this.directed = false;
     }
 
     addEdge(edge: Edge) {
         this.edges.push(edge);
 
         edge.start.addEdge(edge);
-        edge.end.addEdge(edge);
+
+        if (!this.directed) {
+            edge.end.addEdge(edge);
+        }
     }
 
     removeEdge(removeEdge: Edge) {
@@ -124,7 +131,10 @@ class Graph {
         if (removeIdx != -1) {
             this.edges.splice(removeIdx, 1);
             removeEdge.start.removeEdge(removeEdge);
-            removeEdge.end.removeEdge(removeEdge);
+
+            if (!this.directed) {
+                removeEdge.end.removeEdge(removeEdge);
+            }
         }
     }
 

@@ -2,6 +2,8 @@
     import { onMount } from "svelte";
     import { Graph, Position, Node, Edge } from "$lib/graph";
     import type { HTMLSelectAttributes } from "svelte/elements";
+    import { sineIn } from "svelte/easing";
+    import Page from "./routes/+page.svelte";
 
     export let width: number,
         height: number,
@@ -28,17 +30,6 @@
 
     let selected: HTMLSelectAttributes;
 
-    function getNodeFromPosition(position: Position) {
-        for (var node of graph.nodes) {
-            const distance = Position.distance(node.position, position);
-            if (distance < nodeRadius * 2 + nodeBuffer) {
-                return node;
-            }
-        }
-
-        return null;
-    }
-
     onMount(() => {
         let context: CanvasRenderingContext2D = canvas.getContext("2d")!;
         const canvasBounds = canvas.getBoundingClientRect();
@@ -60,7 +51,6 @@
             let clickPos = getCanvasPosition(event);
             if (clickPos != null) {
                 let clickedNode: Node | null = null;
-                let nodeIdx = -1;
                 let closestDistance = Infinity;
 
                 for (let i = 0; i < graph.nodes.length; i++) {
@@ -68,7 +58,7 @@
                     const distance = Position.distance(node.position, clickPos);
                     if (distance < nodeRadius + nodeBuffer) {
                         clickedNode = node;
-                        nodeIdx = i;
+                        break;
                     } else if (distance < closestDistance) {
                         closestDistance = distance;
                     }
@@ -94,6 +84,7 @@
                                 }
 
                                 edge.color = "rgb(255, 129, 129)";
+                                edge.arrowColor = "rgb(234, 90, 90)";
 
                                 let otherNode =
                                     edge.start == node ? edge.end : edge.start;
@@ -116,6 +107,14 @@
                             edge.withinEdge(clickPos)
                         ) {
                             if (selected.id == "1") {
+                                if (
+                                    closestDistance <
+                                    nodeRadius * 2 + nodeBuffer
+                                ) {
+                                    draggingNode = null;
+                                    return;
+                                }
+
                                 let newNode = Node.fromPosition(
                                     edge.getSnappedPoint(clickPos, edgeDistance)
                                 );
@@ -165,7 +164,23 @@
                         return;
                     }
 
-                    let releaseNode = getNodeFromPosition(releasePos);
+                    let releaseNode: Node | null = null;
+                    let closestDistance = Infinity;
+
+                    for (let i = 0; i < graph.nodes.length; i++) {
+                        let node = graph.nodes[i];
+                        const distance = Position.distance(
+                            node.position,
+                            releasePos
+                        );
+                        if (distance < nodeRadius + nodeBuffer) {
+                            releaseNode = node;
+                            break;
+                        } else if (distance < closestDistance) {
+                            closestDistance = distance;
+                        }
+                    }
+
                     if (releaseNode == null) {
                         for (var edge of graph.edges) {
                             let edgeDistance = edge.distanceToPoint(releasePos);
@@ -179,6 +194,15 @@
                                         edgeDistance
                                     )
                                 );
+
+                                if (
+                                    closestDistance <
+                                    nodeRadius * 2 + nodeBuffer
+                                ) {
+                                    draggingNode = null;
+                                    return;
+                                }
+
                                 let firstEdge = new Edge(edge.start, newNode);
                                 let secondEdge = new Edge(newNode, edge.end);
                                 graph.nodes.push(newNode);
@@ -201,6 +225,17 @@
 
                     if (!graph.containsEdge(newEdge)) {
                         graph.addEdge(newEdge);
+                    } else {
+                        for (var edge of graph.edges) {
+                            if (
+                                edge.start == newEdge.end &&
+                                edge.end == newEdge.start &&
+                                edge.start != newEdge.start
+                            ) {
+                                graph.removeEdge(edge);
+                                graph.addEdge(newEdge);
+                            }
+                        }
                     }
                 }
             }
@@ -217,6 +252,67 @@
                 context.lineTo(edge.end.position.x, edge.end.position.y);
 
                 context.stroke();
+            }
+
+            if (graph.directed) {
+                for (var edge of graph.edges) {
+                    context.fillStyle = edge.arrowColor;
+
+                    const arrowX =
+                        (edge.start.position.x + edge.end.position.x) / 2;
+                    const arrowY =
+                        (edge.start.position.y + edge.end.position.y) / 2;
+
+                    const lineAngle = Math.atan2(
+                        edge.end.position.y - edge.start.position.y,
+                        edge.end.position.x - edge.start.position.x
+                    );
+
+                    const width = 5;
+                    const height = 17;
+
+                    let arrowRotation = (30 * Math.PI) / 180;
+
+                    let offsetMagnitude =
+                        (height * Math.sin(arrowRotation)) / 2 - 1;
+
+                    let offsetX =
+                        offsetMagnitude * Math.cos(lineAngle + Math.PI / 2);
+                    let offsetY =
+                        offsetMagnitude * Math.sin(lineAngle + Math.PI / 2);
+
+                    context.translate(arrowX + offsetX, arrowY + offsetY);
+                    context.rotate(lineAngle + Math.PI / 2 - arrowRotation);
+                    context.translate(-(arrowX + offsetX), -(arrowY + offsetY));
+
+                    context.beginPath();
+                    context.roundRect(
+                        arrowX + offsetX - width / 2,
+                        arrowY + offsetY - height / 2,
+                        width,
+                        height,
+                        10
+                    );
+                    context.fill();
+
+                    context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+
+                    context.translate(arrowX - offsetX, arrowY - offsetY);
+                    context.rotate(lineAngle + Math.PI / 2 + arrowRotation);
+                    context.translate(-(arrowX - offsetX), -(arrowY - offsetY));
+
+                    context.beginPath();
+                    context.roundRect(
+                        arrowX - offsetX - width / 2,
+                        arrowY - offsetY - height / 2,
+                        width,
+                        height,
+                        10
+                    );
+                    context.fill();
+
+                    context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+                }
             }
 
             for (var node of graph.nodes) {
