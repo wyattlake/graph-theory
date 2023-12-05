@@ -15,7 +15,7 @@
     let canvas: HTMLCanvasElement;
     let frame: number;
 
-    let graph = new Graph([], [], directed);
+    export let graph = new Graph([], [], directed);
 
     let options = [
         { id: 1, icon: CreateIcon, text: "Create", selectedColor: "#84AAFF" },
@@ -33,7 +33,19 @@
 
     let draggingNode: Node | null = null;
 
+    var scrollStart = 0;
+
+    function beforeUnload() {
+        localStorage.setItem("scrollpos", window.scrollY.toString());
+    }
+
     onMount(() => {
+        let storedScroll = localStorage.getItem("scrollpos");
+        if (storedScroll != null) {
+            console.log(storedScroll);
+            scrollStart = parseFloat(storedScroll);
+        }
+
         let context: CanvasRenderingContext2D = canvas.getContext("2d")!;
         const canvasBounds = canvas.getBoundingClientRect();
 
@@ -41,9 +53,18 @@
 
         function getCanvasPosition(event: MouseEvent) {
             const x = event.clientX - canvasBounds.left;
-            const y = event.clientY - canvasBounds.top;
+            const y =
+                event.clientY - canvasBounds.top + (scrollY - scrollStart);
 
             if (x > 0 && y > 0 && x < width && y < height) {
+                if (
+                    y < 25 + nodeRadius * 2 &&
+                    Math.abs(x - width / 2) <
+                        nodeRadius * 2 + (options.length * 50 + 30) / 2
+                ) {
+                    draggingNode = null;
+                    return null;
+                }
                 return new Position(x, y);
             } else {
                 return null;
@@ -372,6 +393,8 @@
     });
 </script>
 
+<svelte:window on:beforeunload={beforeUnload} />
+
 <div class="canvasBody">
     <div class="canvasHeader">
         <IconSelect {options} initialId={1} bind:selectedId={modeId} />
@@ -392,6 +415,7 @@
         display: flex;
         flex-direction: column;
         align-items: center;
+        margin-top: 50px;
     }
 
     .canvasHeader {
