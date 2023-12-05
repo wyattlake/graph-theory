@@ -35,6 +35,15 @@
 
     var scrollStart = 0;
 
+    function elementIsVisible(element: HTMLElement) {
+        var rect = element.getBoundingClientRect();
+        var viewHeight = Math.max(
+            document.documentElement.clientHeight,
+            window.innerHeight
+        );
+        return !(rect.bottom < 0 || rect.top - viewHeight >= 0);
+    }
+
     function beforeUnload() {
         localStorage.setItem("scrollpos", window.scrollY.toString());
     }
@@ -62,7 +71,6 @@
                     Math.abs(x - width / 2) <
                         nodeRadius * 2 + (options.length * 50 + 30) / 2
                 ) {
-                    draggingNode = null;
                     return null;
                 }
                 return new Position(x, y);
@@ -382,13 +390,17 @@
             };
         }
 
+        context.imageSmoothingEnabled = true;
+
         return gameLoop((_, dt) => {
-            context.imageSmoothingEnabled = true;
             context.strokeStyle = "rgb(132, 170, 255)";
             context.lineWidth = edgeWidth;
 
             context.fillStyle = "rgb(75, 130, 255)";
-            drawFrame(dt);
+
+            if (elementIsVisible(canvas)) {
+                drawFrame(dt);
+            }
         });
     });
 </script>
