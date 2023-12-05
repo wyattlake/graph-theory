@@ -7,4 +7,4 @@
 </svelte.head>
 
 <h1>Graph Theory Demo</h1>
-<Canvas width={500} height={300} directed={true} />
+<Canvas width={500} height={500} directed={true} />

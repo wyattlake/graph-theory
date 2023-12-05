@@ -1,0 +1,16 @@
+.mainArticle {
+    display: flex;
+    flex-direction: column;
+    width: 700px;
+    padding-top: 50px;
+}
+
+.body {
+    width: 100vw;
+    display: flex;
+    justify-content: center;
+}
+
+body {
+    margin: 0px;
+}
