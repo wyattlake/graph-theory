@@ -14,8 +14,8 @@ class Position {
 
 class Node {
     position: Position;
-    edges: Edge[];
-    adjacent: Node[];
+    outgoingEdges: Edge[];
+    incomingEdges: Edge[];
     color: string;
 
     static fromPosition(position: Position) {
@@ -23,33 +23,25 @@ class Node {
     }
 
     addEdge(edge: Edge) {
-        this.edges.push(edge);
-
         if (edge.start == this) {
-            this.adjacent.push(edge.end);
-        } else {
-            this.adjacent.push(edge.start);
+            this.outgoingEdges.push(edge);
+        } else if (edge.end == this) {
+            this.incomingEdges.push(edge);
         }
     }
 
     removeEdge(edge: Edge) {
-        const index = this.edges.indexOf(edge);
-
-        if (index > -1) {
-            this.edges.splice(index, 1);
-
-            if (edge.start == this) {
-                this.adjacent.splice(this.adjacent.indexOf(edge.end), 1);
-            } else {
-                this.adjacent.splice(this.adjacent.indexOf(edge.start), 1);
-            }
+        if (edge.start == this) {
+            this.outgoingEdges.splice(this.outgoingEdges.indexOf(edge), 1);
+        } else if (edge.end == this) {
+            this.incomingEdges.splice(this.incomingEdges.indexOf(edge), 1);
         }
     }
 
     constructor(x: number, y: number) {
         this.position = new Position(x, y);
-        this.edges = [];
-        this.adjacent = [];
+        this.incomingEdges = [];
+        this.outgoingEdges = [];
         this.color = "rgb(75, 130, 255)";
     }
 }
@@ -109,20 +101,17 @@ class Graph {
     edges: Edge[];
     directed: boolean;
 
-    constructor(nodes: Node[], edges: []) {
+    constructor(nodes: Node[], edges: [], directed: boolean) {
         this.nodes = nodes;
         this.edges = edges;
-        this.directed = false;
+        this.directed = directed;
     }
 
     addEdge(edge: Edge) {
         this.edges.push(edge);
 
         edge.start.addEdge(edge);
-
-        if (!this.directed) {
-            edge.end.addEdge(edge);
-        }
+        edge.end.addEdge(edge);
     }
 
     removeEdge(removeEdge: Edge) {
@@ -131,10 +120,7 @@ class Graph {
         if (removeIdx != -1) {
             this.edges.splice(removeIdx, 1);
             removeEdge.start.removeEdge(removeEdge);
-
-            if (!this.directed) {
-                removeEdge.end.removeEdge(removeEdge);
-            }
+            removeEdge.end.removeEdge(removeEdge);
         }
     }
 
@@ -144,8 +130,13 @@ class Graph {
         if (removeIdx != -1) {
             this.nodes.splice(removeIdx, 1);
 
-            for (let i = 0; i < removeNode.edges.length; i++) {
-                this.removeEdge(removeNode.edges[i]);
+            for (let i = 0; i < removeNode.incomingEdges.length; i++) {
+                this.removeEdge(removeNode.incomingEdges[i]);
+                i--;
+            }
+
+            for (let i = 0; i < removeNode.outgoingEdges.length; i++) {
+                this.removeEdge(removeNode.outgoingEdges[i]);
                 i--;
             }
         }

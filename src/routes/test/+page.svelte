@@ -1,9 +1,9 @@
-<script>
-    import Canvas from "../Canvas.svelte";
+<script lang="ts">
+    import Canvas from "../../Canvas.svelte";
 </script>
 
 <svelte.head>
-    <title>Lesson 1</title>
+    <title>Graph Theory</title>
 </svelte.head>
 
 <h1>Graph Theory Demo</h1>

@@ -3,16 +3,17 @@
     import { Graph, Position, Node, Edge } from "$lib/graph";
     import type { HTMLSelectAttributes } from "svelte/elements";
     import { sineIn } from "svelte/easing";
-    import Page from "./routes/+page.svelte";
+    import Page from "./routes/test/+page.svelte";
 
     export let width: number,
         height: number,
-        pixelRatio: number = 1;
+        pixelRatio: number = 1.5,
+        directed: boolean = false;
 
     let canvas: HTMLCanvasElement;
     let frame: number;
 
-    let graph = new Graph([], []);
+    let graph = new Graph([], [], directed);
 
     let options = [
         { id: 1, text: `Create` },
@@ -78,7 +79,14 @@
                             node.color = "rgb(234, 90, 90)";
                             visited.push(node);
 
-                            for (var edge of node.edges) {
+                            let possibleEdges = graph.directed
+                                ? node.outgoingEdges
+                                : Array.prototype.concat(
+                                      node.incomingEdges,
+                                      node.outgoingEdges
+                                  );
+
+                            for (var edge of possibleEdges) {
                                 if (visited.length == graph.nodes.length) {
                                     return;
                                 }
@@ -217,6 +225,11 @@
                         let newNode = Node.fromPosition(releasePos);
                         graph.nodes.push(newNode);
                         graph.addEdge(new Edge(draggingNode, newNode));
+                        draggingNode = null;
+                        return;
+                    }
+
+                    if (draggingNode == releaseNode) {
                         draggingNode = null;
                         return;
                     }
