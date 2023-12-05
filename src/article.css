@@ -3,6 +3,7 @@
     flex-direction: column;
     width: 700px;
     padding-top: 50px;
+    align-items: flex-start;
 }
 
 .body {

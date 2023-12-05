@@ -1,9 +1,11 @@
 <script lang="ts">
     import { onMount } from "svelte";
     import { Graph, Position, Node, Edge } from "$lib/graph";
-    import type { HTMLSelectAttributes } from "svelte/elements";
-    import { sineIn } from "svelte/easing";
-    import Page from "./routes/test/+page.svelte";
+    import IconSelect from "./IconSelect.svelte";
+    import CreateIcon from "./icons/createIcon.svelte";
+    import MoveIcon from "./icons/moveIcon.svelte";
+    import DeleteIcon from "./icons/deleteIcon.svelte";
+    import RobotIcon from "./icons/robotIcon.svelte";
 
     export let width: number,
         height: number,
@@ -16,11 +18,13 @@
     let graph = new Graph([], [], directed);
 
     let options = [
-        { id: 1, text: `Create` },
-        { id: 2, text: `Move` },
-        { id: 3, text: `Delete` },
-        { id: 4, text: `DFS` },
+        { id: 1, icon: CreateIcon, text: "Create", selectedColor: "#84AAFF" },
+        { id: 2, icon: MoveIcon, text: "Move", selectedColor: "#9CE68B" },
+        { id: 3, icon: DeleteIcon, text: "Delete", selectedColor: "#FF8181" },
+        { id: 4, icon: RobotIcon, text: "Algorithm", selectedColor: "#FFB884" },
     ];
+
+    let modeId: number;
 
     const nodeRadius = 7;
     const nodeBuffer = 2;
@@ -28,8 +32,6 @@
     const edgeBuffer = 10;
 
     let draggingNode: Node | null = null;
-
-    let selected: HTMLSelectAttributes;
 
     onMount(() => {
         let context: CanvasRenderingContext2D = canvas.getContext("2d")!;
@@ -66,9 +68,9 @@
                 }
 
                 if (clickedNode != null) {
-                    if (selected.id == "3") {
+                    if (modeId == 3) {
                         graph.removeNode(clickedNode);
-                    } else if (selected.id == "4") {
+                    } else if (modeId == 4) {
                         function DFS(node: Node) {
                             let visited: Array<Node> = [];
 
@@ -114,7 +116,7 @@
                             Math.abs(edgeDistance) < edgeBuffer &&
                             edge.withinEdge(clickPos)
                         ) {
-                            if (selected.id == "1") {
+                            if (modeId == 1) {
                                 if (
                                     closestDistance <
                                     nodeRadius * 2 + nodeBuffer
@@ -134,13 +136,13 @@
                                 graph.removeEdge(edge);
                                 draggingNode = newNode;
                                 return;
-                            } else if (selected.id == "3") {
+                            } else if (modeId == 3) {
                                 graph.removeEdge(edge);
                                 return;
                             }
                         }
                     }
-                    if (selected.id == "1") {
+                    if (modeId == 1) {
                         if (closestDistance < nodeRadius * 2 + nodeBuffer) {
                             return;
                         }
@@ -154,7 +156,7 @@
 
         addEventListener("mousemove", (event) => {
             if (draggingNode != null) {
-                if (selected.id == "2") {
+                if (modeId == 2) {
                     let mousePosition = getCanvasPosition(event);
                     if (mousePosition != null) {
                         draggingNode.position = mousePosition;
@@ -165,7 +167,7 @@
 
         addEventListener("mouseup", (event) => {
             if (draggingNode != null) {
-                if (selected.id == "1") {
+                if (modeId == 1) {
                     let releasePos = getCanvasPosition(event);
                     if (releasePos == null) {
                         draggingNode = null;
@@ -370,34 +372,39 @@
     });
 </script>
 
-<div class="container">
-    <canvas
-        bind:this={canvas}
-        width={width * pixelRatio}
-        height={height * pixelRatio}
-        style="width: {width}px; height: {height}px;"
-    />
+<div class="canvasBody">
+    <div class="canvasHeader">
+        <IconSelect {options} initialId={1} bind:selectedId={modeId} />
+    </div>
 
-    <select bind:value={selected}>
-        {#each options as option}
-            <option value={option}>
-                {option.text}
-            </option>
-        {/each}
-    </select>
+    <div class="container">
+        <canvas
+            bind:this={canvas}
+            width={width * pixelRatio}
+            height={height * pixelRatio}
+            style="width: {width}px; height: {height}px;"
+        />
+    </div>
 </div>
 
 <style>
+    .canvasBody {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .canvasHeader {
+        position: absolute;
+    }
+
     .container {
         display: flex;
         flex-direction: column;
     }
 
-    select {
-        width: 100px;
-    }
-
     canvas {
+        margin-top: 25px;
         margin-bottom: 20px;
         border: 2px solid #d9d9d9;
         border-radius: 20px;
