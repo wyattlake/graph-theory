@@ -17,6 +17,7 @@ class Node {
     outgoingEdges: Edge[];
     incomingEdges: Edge[];
     color: string;
+    label: string;
 
     static fromPosition(position: Position) {
         return new Node(position.x, position.y);
@@ -43,6 +44,13 @@ class Node {
         this.incomingEdges = [];
         this.outgoingEdges = [];
         this.color = "rgb(75, 130, 255)";
+        this.label = "";
+    }
+
+    static withLabel(x: number, y: number, label: string) {
+        let node = new Node(x, y);
+        node.label = label;
+        return node;
     }
 }
 

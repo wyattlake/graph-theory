@@ -6,6 +6,7 @@
     import MoveIcon from "./icons/moveIcon.svelte";
     import DeleteIcon from "./icons/deleteIcon.svelte";
     import RobotIcon from "./icons/robotIcon.svelte";
+    import type IconOption from "./lib/iconOption";
 
     export let width: number,
         height: number,
@@ -17,14 +18,27 @@
 
     export let graph = new Graph([], [], directed);
 
-    let options = [
+    export let modes: Array<number> = [1, 2, 3];
+
+    let optionItems = [
         { id: 1, icon: CreateIcon, text: "Create", selectedColor: "#84AAFF" },
         { id: 2, icon: MoveIcon, text: "Move", selectedColor: "#9CE68B" },
         { id: 3, icon: DeleteIcon, text: "Delete", selectedColor: "#FF8181" },
         { id: 4, icon: RobotIcon, text: "Algorithm", selectedColor: "#FFB884" },
     ];
 
-    let modeId: number;
+    let options: Array<IconOption> = [];
+
+    for (let i = 0; i < modes.length; i++) {
+        for (let j = 0; j < optionItems.length; j++) {
+            if (modes[i] == optionItems[j].id) {
+                options.push(optionItems[j]);
+                break;
+            }
+        }
+    }
+
+    let modeId: number = modes.length > 0 ? modes[0] : -1;
 
     const nodeRadius = 7;
     const nodeBuffer = 2;
@@ -56,14 +70,17 @@
         }
 
         let context: CanvasRenderingContext2D = canvas.getContext("2d")!;
-        const canvasBounds = canvas.getBoundingClientRect();
 
         context.scale(pixelRatio, pixelRatio);
 
         function getCanvasPosition(event: MouseEvent) {
+            const canvasBounds = canvas.getBoundingClientRect();
+
             const x = event.clientX - canvasBounds.left;
-            const y =
-                event.clientY - canvasBounds.top + (scrollY - scrollStart);
+            console.log("event: ", event.screenY);
+            console.log("scroll: ", window.scrollY);
+            console.log("canvas: ", canvasBounds.top + window.scrollY);
+            const y = event.clientY - canvasBounds.top;
 
             if (x > 0 && y > 0 && x < width && y < height) {
                 if (
@@ -371,6 +388,17 @@
                     false
                 );
                 context.fill();
+
+                if (node.label != "") {
+                    context.textAlign = "center";
+                    context.font = "20px Inter";
+                    context.fillStyle = "black";
+                    context.fillText(
+                        node.label,
+                        node.position.x,
+                        node.position.y - nodeRadius - 10
+                    );
+                }
             }
         }
 
@@ -428,6 +456,7 @@
         flex-direction: column;
         align-items: center;
         margin-top: 50px;
+        margin-bottom: 50px;
     }
 
     .canvasHeader {
@@ -441,7 +470,7 @@
 
     canvas {
         margin-top: 25px;
-        margin-bottom: 20px;
+        margin-bottom: 25px;
         border: 2px solid #d9d9d9;
         border-radius: 20px;
     }

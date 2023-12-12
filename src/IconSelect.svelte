@@ -1,10 +1,5 @@
 <script lang="ts">
-    interface IconOption {
-        id: number;
-        icon: ConstructorOfATypedSvelteComponent;
-        text: string;
-        selectedColor: string;
-    }
+    import type IconOption from "./lib/iconOption";
 
     export let options: Array<IconOption>;
     export let initialId: number = 0;
@@ -21,7 +16,7 @@
         >
             <svelte:component
                 this={option.icon}
-                color={option.id == selectedId ? "#84AAFF" : "#d9d9d9"}
+                color={option.id == selectedId ? "#4B82FF" : "#d9d9d9"}
                 size={30}
             />
         </button>

@@ -9,8 +9,13 @@
     width: 100vw;
     display: flex;
     justify-content: center;
+    padding-bottom: 200px;
 }
 
 body {
     margin: 0px;
+}
+
+strong {
+    font-weight: 500;
 }
