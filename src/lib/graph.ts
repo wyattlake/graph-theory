@@ -16,8 +16,8 @@ class Node {
     position: Position;
     outgoingEdges: Edge[];
     incomingEdges: Edge[];
-    color: string;
     label: string;
+    color: string;
 
     static fromPosition(position: Position) {
         return new Node(position.x, position.y);
@@ -43,8 +43,8 @@ class Node {
         this.position = new Position(x, y);
         this.incomingEdges = [];
         this.outgoingEdges = [];
-        this.color = "rgb(75, 130, 255)";
         this.label = "";
+        this.color = "rgb(75, 130, 255)";
     }
 
     static withLabel(x: number, y: number, label: string) {
@@ -57,13 +57,13 @@ class Node {
 class Edge {
     start: Node;
     end: Node;
-    color: string;
+    edgeColor: string;
     arrowColor: string;
 
     constructor(start: Node, end: Node) {
         this.start = start;
         this.end = end;
-        this.color = "rgb(132, 170, 255)";
+        this.edgeColor = "rgb(132, 170, 255)";
         this.arrowColor = "rgb(75, 130, 255)";
     }
 
@@ -110,9 +110,30 @@ class Graph {
     directed: boolean;
 
     constructor(nodes: Node[], edges: [], directed: boolean) {
-        this.nodes = nodes;
-        this.edges = edges;
+        this.nodes = [];
+        this.edges = [];
+
+        for (var node of nodes) {
+            this.addNode(node);
+        }
+
+        for (var edge of edges) {
+            this.addEdge(edge);
+        }
+
         this.directed = directed;
+    }
+
+    getNode(idx: number) {
+        return this.nodes[idx];
+    }
+
+    getEdge(idx: number) {
+        return this.edges[idx];
+    }
+
+    addNode(node: Node) {
+        this.nodes.push(node);
     }
 
     addEdge(edge: Edge) {
@@ -123,30 +144,35 @@ class Graph {
     }
 
     removeEdge(removeEdge: Edge) {
-        let removeIdx = this.edges.indexOf(removeEdge);
+        let edgeIdx = this.edges.indexOf(removeEdge);
 
-        if (removeIdx != -1) {
-            this.edges.splice(removeIdx, 1);
-            removeEdge.start.removeEdge(removeEdge);
-            removeEdge.end.removeEdge(removeEdge);
+        if (edgeIdx == -1) {
+            return;
         }
+
+        this.edges.splice(edgeIdx, 1);
+
+        removeEdge.start.removeEdge(removeEdge);
+        removeEdge.end.removeEdge(removeEdge);
     }
 
     removeNode(removeNode: Node) {
-        let removeIdx = this.nodes.indexOf(removeNode);
+        let nodeIdx = this.nodes.indexOf(removeNode);
 
-        if (removeIdx != -1) {
-            this.nodes.splice(removeIdx, 1);
+        if (nodeIdx == -1) {
+            return;
+        }
 
-            for (let i = 0; i < removeNode.incomingEdges.length; i++) {
-                this.removeEdge(removeNode.incomingEdges[i]);
-                i--;
-            }
+        this.nodes.splice(nodeIdx, 1);
 
-            for (let i = 0; i < removeNode.outgoingEdges.length; i++) {
-                this.removeEdge(removeNode.outgoingEdges[i]);
-                i--;
-            }
+        for (let i = 0; i < removeNode.incomingEdges.length; i++) {
+            this.removeEdge(removeNode.incomingEdges[i]);
+            i--;
+        }
+
+        for (let i = 0; i < removeNode.outgoingEdges.length; i++) {
+            this.removeEdge(removeNode.outgoingEdges[i]);
+            i--;
         }
     }
 

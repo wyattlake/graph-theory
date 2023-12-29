@@ -25,7 +25,48 @@
         { id: 2, icon: MoveIcon, text: "Move", selectedColor: "#9CE68B" },
         { id: 3, icon: DeleteIcon, text: "Delete", selectedColor: "#FF8181" },
         { id: 4, icon: RobotIcon, text: "Algorithm", selectedColor: "#FFB884" },
+        { id: 5, icon: RobotIcon, text: "Algorithm", selectedColor: "#FFB884" },
     ];
+
+    let message = "Click a node to begin";
+
+    let graphUpdated = false;
+
+    function DFS(node: Node) {
+        let visited: Array<Node> = [];
+
+        DFSUtil(node, visited);
+
+        return visited;
+    }
+
+    function DFSUtil(node: Node, visited: Array<Node>) {
+        visited.push(node);
+
+        console.log(node);
+
+        let possibleEdges = graph.directed
+            ? node.outgoingEdges
+            : Array.prototype.concat(node.incomingEdges, node.outgoingEdges);
+
+        for (var edge of possibleEdges) {
+            if (visited.length == graph.nodes.length) {
+                return;
+            }
+
+            let otherNode = edge.start == node ? edge.end : edge.start;
+
+            if (!visited.includes(otherNode)) {
+                DFSUtil(otherNode, visited);
+            }
+        }
+    }
+
+    function resetGraph() {
+        for (var node of graph.nodes) {
+            node.color = "rgb(75, 130, 255)";
+        }
+    }
 
     let options: Array<IconOption> = [];
 
@@ -65,7 +106,6 @@
     onMount(() => {
         let storedScroll = localStorage.getItem("scrollpos");
         if (storedScroll != null) {
-            console.log(storedScroll);
             scrollStart = parseFloat(storedScroll);
         }
 
@@ -77,9 +117,6 @@
             const canvasBounds = canvas.getBoundingClientRect();
 
             const x = event.clientX - canvasBounds.left;
-            console.log("event: ", event.screenY);
-            console.log("scroll: ", window.scrollY);
-            console.log("canvas: ", canvasBounds.top + window.scrollY);
             const y = event.clientY - canvasBounds.top;
 
             if (x > 0 && y > 0 && x < width && y < height) {
@@ -103,10 +140,10 @@
                 let closestDistance = Infinity;
 
                 for (let i = 0; i < graph.nodes.length; i++) {
-                    let node = graph.nodes[i];
+                    let node = graph.getNode(i);
                     const distance = Position.distance(node.position, clickPos);
                     if (distance < nodeRadius + nodeBuffer) {
-                        clickedNode = node;
+                        clickedNode = graph.nodes[i];
                         break;
                     } else if (distance < closestDistance) {
                         closestDistance = distance;
@@ -116,42 +153,38 @@
                 if (clickedNode != null) {
                     if (modeId == 3) {
                         graph.removeNode(clickedNode);
+                        graphUpdated = true;
                     } else if (modeId == 4) {
-                        function DFS(node: Node) {
-                            let visited: Array<Node> = [];
+                        DFS(clickedNode);
+                    } else if (modeId == 5) {
+                        function getRootNode(currentNode: Node, step: number) {
+                            let reachedNodes = DFS(currentNode);
+                            let remainingNodes = [];
 
-                            DFSUtil(node, visited);
-                        }
-
-                        function DFSUtil(node: Node, visited: Array<Node>) {
-                            node.color = "rgb(234, 90, 90)";
-                            visited.push(node);
-
-                            let possibleEdges = graph.directed
-                                ? node.outgoingEdges
-                                : Array.prototype.concat(
-                                      node.incomingEdges,
-                                      node.outgoingEdges
-                                  );
-
-                            for (var edge of possibleEdges) {
-                                if (visited.length == graph.nodes.length) {
-                                    return;
+                            for (var coloredNode of graph.nodes) {
+                                if (!reachedNodes.includes(coloredNode)) {
+                                    remainingNodes.push(coloredNode);
                                 }
+                            }
 
-                                edge.color = "rgb(255, 129, 129)";
-                                edge.arrowColor = "rgb(234, 90, 90)";
+                            if (step > graph.nodes.length) {
+                                return null;
+                            }
 
-                                let otherNode =
-                                    edge.start == node ? edge.end : edge.start;
-
-                                if (!visited.includes(otherNode)) {
-                                    DFSUtil(otherNode, visited);
-                                }
+                            if (remainingNodes.length == 0) {
+                                return currentNode;
+                            } else {
+                                return getRootNode(remainingNodes[0], step + 1);
                             }
                         }
 
-                        DFS(clickedNode);
+                        let rootNode = getRootNode(clickedNode, 1);
+                        if (rootNode == null) {
+                            message = "Graph is not unilaterally connected";
+                        } else {
+                            message = "Found root node";
+                            rootNode.color = "rgb(0, 255, 0)";
+                        }
                     } else {
                         draggingNode = clickedNode;
                     }
@@ -176,14 +209,16 @@
                                 );
                                 let firstEdge = new Edge(edge.start, newNode);
                                 let secondEdge = new Edge(newNode, edge.end);
-                                graph.nodes.push(newNode);
+                                graph.addNode(newNode);
                                 graph.addEdge(firstEdge);
                                 graph.addEdge(secondEdge);
                                 graph.removeEdge(edge);
                                 draggingNode = newNode;
+                                graphUpdated = true;
                                 return;
                             } else if (modeId == 3) {
                                 graph.removeEdge(edge);
+                                graphUpdated = true;
                                 return;
                             }
                         }
@@ -193,8 +228,9 @@
                             return;
                         }
                         let newNode = Node.fromPosition(clickPos);
-                        graph.nodes.push(newNode);
+                        graph.addNode(newNode);
                         draggingNode = newNode;
+                        graphUpdated = true;
                     }
                 }
             }
@@ -261,18 +297,20 @@
 
                                 let firstEdge = new Edge(edge.start, newNode);
                                 let secondEdge = new Edge(newNode, edge.end);
-                                graph.nodes.push(newNode);
+                                graph.addNode(newNode);
                                 graph.addEdge(firstEdge);
                                 graph.addEdge(secondEdge);
                                 graph.addEdge(new Edge(draggingNode, newNode));
                                 graph.removeEdge(edge);
+                                graphUpdated = true;
                                 draggingNode = null;
                                 return;
                             }
                         }
                         let newNode = Node.fromPosition(releasePos);
-                        graph.nodes.push(newNode);
+                        graph.addNode(newNode);
                         graph.addEdge(new Edge(draggingNode, newNode));
+                        graphUpdated = true;
                         draggingNode = null;
                         return;
                     }
@@ -286,6 +324,7 @@
 
                     if (!graph.containsEdge(newEdge)) {
                         graph.addEdge(newEdge);
+                        graphUpdated = true;
                     } else {
                         for (var edge of graph.edges) {
                             if (
@@ -295,6 +334,7 @@
                             ) {
                                 graph.removeEdge(edge);
                                 graph.addEdge(newEdge);
+                                graphUpdated = true;
                             }
                         }
                     }
@@ -307,7 +347,7 @@
             context.clearRect(0, 0, width, height);
 
             for (var edge of graph.edges) {
-                context.strokeStyle = edge.color;
+                context.strokeStyle = edge.edgeColor;
                 context.beginPath();
                 context.moveTo(edge.start.position.x, edge.start.position.y);
                 context.lineTo(edge.end.position.x, edge.end.position.y);
@@ -315,7 +355,7 @@
                 context.stroke();
             }
 
-            if (graph.directed) {
+            if (directed) {
                 for (var edge of graph.edges) {
                     context.fillStyle = edge.arrowColor;
 
@@ -378,6 +418,7 @@
 
             for (var node of graph.nodes) {
                 context.fillStyle = node.color;
+
                 context.beginPath();
                 context.arc(
                     node.position.x,
@@ -399,6 +440,12 @@
                         node.position.y - nodeRadius - 10
                     );
                 }
+            }
+
+            if (graphUpdated) {
+                message = "Click a node to begin";
+                resetGraph();
+                graphUpdated = false;
             }
         }
 
@@ -448,19 +495,41 @@
             style="width: {width}px; height: {height}px;"
         />
     </div>
+
+    {#if modeId == 5}
+        <div class="canvasFooter"><p>{message}</p></div>
+    {/if}
 </div>
 
-<style>
+<style style="--height={height}">
     .canvasBody {
         display: flex;
         flex-direction: column;
         align-items: center;
         margin-top: 50px;
         margin-bottom: 50px;
+        height: var(--height);
+        position: relative;
     }
 
     .canvasHeader {
         position: absolute;
+    }
+
+    .canvasFooter {
+        position: absolute;
+        margin: 0 auto;
+        width: auto;
+        bottom: 0px;
+        background-color: white;
+        border-radius: 15px;
+        border: 2px solid #d9d9d9;
+        padding: 0 25px;
+        display: flex;
+        height: 50px;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
     }
 
     .container {
@@ -473,5 +542,9 @@
         margin-bottom: 25px;
         border: 2px solid #d9d9d9;
         border-radius: 20px;
+    }
+
+    p {
+        margin-bottom: 0px;
     }
 </style>

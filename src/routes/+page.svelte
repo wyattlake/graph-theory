@@ -65,6 +65,26 @@
     connected.addEdge(new Edge(con5, con7));
     connected.addEdge(new Edge(con5, con6));
     connected.addEdge(new Edge(con6, con7));
+
+    let un1 = new Node(100, 150);
+    let un2 = new Node(300, 250);
+    let un3 = new Node(550, 100);
+    let ug = new Graph([un1, un2, un3], [], true);
+
+    ug.addEdge(new Edge(un1, un2));
+    ug.addEdge(new Edge(un2, un3));
+
+    let uni1 = new Node(200, 100);
+    let uni2 = new Node(550, 80);
+    let uni3 = new Node(450, 250);
+    let uni4 = new Node(140, 200);
+    let unig = new Graph([uni1, uni2, uni3, uni4], [], true);
+
+    unig.addEdge(new Edge(uni1, uni2));
+    unig.addEdge(new Edge(uni3, uni2));
+    unig.addEdge(new Edge(uni3, uni4));
+    unig.addEdge(new Edge(uni2, uni4));
+    unig.addEdge(new Edge(uni1, uni3));
 </script>
 
 <svelte.head>
@@ -142,12 +162,12 @@
             For any two vertices in a graph, those vertices are <strong
                 >adjacent</strong
             >
-            if there is an edge between them. We define a <strong>path</strong>
-            as a list of vertices and edges such that each vertex in the path is
+            if there is an edge between them. We define a <strong>chain</strong>
+            as a list of vertices and edges such that each vertex in the chain is
             adjacent to the previous vertex by some edge.
         </p>
         <p>
-            {`For example, in the graph below, we can define a path P with {u, (u,
+            {`For example, in the graph below, we can define a chain C with {u, (u,
             v), v, (v, w), w}.`}
         </p>
         <Canvas
@@ -159,33 +179,34 @@
         />
         <p>
             We consider two vertices
-            <strong>connected</strong> if there exists a path starting at one vertex
-            and ending at the other. In the above graph, path P shows that u and
+            <strong>joined</strong> if there exists a chain starting at one vertex
+            and ending at the other. In the above graph, chain C shows that u and
             v are connected
         </p>
         <p>
-            We consider a graph <strong>connected</strong> if there is a path between
+            We consider a graph <strong>connected</strong> if there is a chain between
             any pair of vertices in the graph. The above graph is an example of a
             connected graph
         </p>
         <p>
             Note that a graph being connected does not imply that it is
-            complete, as paths between nodes in the connected graph do not need
-            to be directly from one node to the other. As an example, the above
-            graph is not a complete graph because no edge exists between u and
-            w.
+            complete, as chains between vertices in the connected graph do not
+            need to be directly from one vertex to the other. For example, the
+            above graph is connected but not complete because no edge exists
+            between u and w.
         </p>
         <p>
             <strong>Challenge: </strong> Try to prove that all complete graphs are
-            connected. Think about what path might exists between any two nodes in
-            a complete graph.
+            connected. Think about what chain might exists between any two vertices
+            in a complete graph.
         </p>
         <h1>Directed Graphs</h1>
         <p>
-            <strong>Directed graphs</strong> are a type of graph where each edge
-            has a direction and only vertex is adjacent to the other in a given edge.
-            For example, if a directed graph has the edge (u, v), this implies that
-            v is adjacent to u but does not imply that u is adjacent to v.
+            <strong>Directed graphs</strong> or <strong>digraphs</strong> are a type
+            of graph where each edge has a direction. The direction indicates which
+            vertex in the edge is adjacent to the other. For example, if a directed
+            graph has the edge (u, v), this implies that v is adjacent to u but does
+            not imply that u is adjacent to v.
         </p>
         <p>
             When creating diagrams of directed graphs, an arrow is drawn on each
@@ -195,35 +216,198 @@
         <p>Below is a directed graph with five edges and four vertices.</p>
         <Canvas width={700} height={350} directed={true} graph={g2} />
         <p>
+            For directed graphs, we define a <strong>path</strong> as a list of adjacent
+            vertices and connecting edges. This concept is analogous to chains in
+            undirected graphs.
+        </p>
+        <p>
+            Recall that for undirected graphs we say one vertex joins another if
+            there is a valid chain between them. For directed graphs, we say one
+            vertex <strong>reaches</strong> another if there is a valid path between
+            them.
+        </p>
+        <p>
             For any directed graph, we can create an underlying <strong
                 >undirected graph</strong
             > by removing the directional component of every edge in the directed
-            graph. As an example, here is the undirected equivalent of the original
-            graph above:
+            graph. As an example, here is the undirected equivalent of the graph
+            above:
         </p>
-        <Canvas width={700} height={350} directed={false} graph={g2un} />
+        <Canvas
+            width={700}
+            height={350}
+            directed={false}
+            graph={g2}
+            modes={[1, 2, 3]}
+        />
         <p>
-            Note that because paths travel through adjacent nodes, there are
-            some paths in this undirected graph which do not exist in the
-            original directed graph. As an example, any path that goes through
-            all four nodes of the undirected graph which also starts and ends at
-            the same node is not a valid path for the directed graph.
+            Note that because chains travel through adjacent vertices, there may
+            be some chains in this undirected graph which do not have equivalent
+            paths in the directed graph.
         </p>
         <p>
             This leads to two definitions of connectedness for directed graphs.
         </p>
         <li>
             We consider a directed graph to be <strong>weakly connected</strong>
-            if for any two vertices u and v there exists a path between them in the
-            equivalent undirected graph.
+            if for any two vertices u and v there exists a chain between them in
+            the equivalent undirected graph.
         </li>
         <li>
             We consider a directed graph to be <strong
                 >strongly connected</strong
-            > if for any two vertices u and v there exists a valid path from v to
-            u and from u to v in the directed graph.
+            > if for any two vertices u and v there exists a path from v to u and
+            another path from u to v in the directed graph.
         </li>
-        <p></p>
+        <h1>Unilaterally Connected Proof</h1>
+        <p>
+            Let's synthesize our knowledge of graphs with a proof for <strong
+                >unilaterally connected</strong
+            > graphs.
+        </p>
+        <p>
+            A directed graph is <strong>unilaterally connected</strong> if for any
+            pair of vertices u and v there is either a path from v to u or from u
+            to v. Note that this definition of connectedness is more strict than
+            weak connectedness but less strict than strong connectedness
+        </p>
+        <p>
+            For example, the graph below is weakly connected and unilaterally
+            connected but not strongly connected:
+        </p>
+        <Canvas
+            width={700}
+            height={350}
+            directed={true}
+            graph={ug}
+            modes={[2]}
+        />
+        <p>
+            A <strong>root vertex</strong> in a directed graph is any vertex which
+            reaches all other vertices in the graph. With these definitions we can
+            finally prove the following:
+        </p>
+        <p>
+            <strong>Theorem: </strong> For any finite unilaterally connected graph
+            G, there exists a vertex r in V(G) such that r is a root vertex.
+        </p>
+        <p>
+            <strong>Proof: </strong> The simplest way to approach this problem is
+            to try and come up with an alogrithm for finding the root vertex. If
+            we can prove that this algorithm can always find a root vertex, then
+            we have proven the above theorem.
+        </p>
+        <p>
+            Here is general walkthrough of the algorithm for finding the root
+            vertex:
+        </p>
+        <p>
+            Let's start with an arbitrary vertex v<sub>0</sub> in V(G) as our
+            candidate for the root vertex. Let's sort all the other vertices in
+            G into two sets. One containing all the vertices which v reaches (V<sub
+                >0</sub
+            ><sup>r</sup>) and one containing all the vertices which v doesn't
+            reach (V<sub>0</sub><sup>r'</sup>).
+        </p>
+        <p>Now we can consider the following cases:</p>
+        <li>
+            If V<sub>0</sub><sup>r'</sup> is empty then v<sub>0</sub> reaches
+            all other edges and v<sub>0</sub> is our root vertex and we are done.
+        </li>
+        <li>
+            Otherwise, we can take any vertex from V<sub>0</sub><sup>r</sup>
+            and call it v<sub>1</sub>. Note that v<sub>1</sub> must reach v<sub
+                >0</sub
+            > by the definition of unilaterally connected graphs.
+        </li>
+        <p>
+            Now we consider v<sub>1</sub> as our candidate for the root vertex.
+            We already know that v<sub>1</sub> reaches v<sub>0</sub>. However, v<sub
+                >1</sub
+            >
+            also reaches every other vertex which v<sub>0</sub> reaches. We can show
+            that in the following way:
+        </p>
+        <p>
+            Remember a vertex reaches another vertex is there is a path between
+            them. We know that there is a path between v<sub>0</sub> and v<sub
+                >1</sub
+            >
+            because v<sub>1</sub> reaches v<sub>0</sub>. Now consider any vertex
+            u which v<sub>0</sub> reaches. We can create a path from v<sub
+                >1</sub
+            >
+            to u by appending the path from v<sub>0</sub> to u to the path from
+            v<sub>1</sub> to v<sub>0</sub>. Thus, v<sub>1</sub> reaches v<sub
+                >0</sub
+            >
+            and any other vertex which v<sub>0</sub> reaches.
+        </p>
+        <p>
+            Now we repeat this process until we eventually land on a vertex
+            which reaches all others, this vertex is the root.
+        </p>
+
+        <p>Click on a vertex in the graph below to start the algorithm:</p>
+
+        <Canvas
+            width={700}
+            height={350}
+            directed={true}
+            graph={unig}
+            modes={[5, 1, 2, 3]}
+        />
+
+        <p>
+            With this algorithm described, we now just need to prove that it
+            will always find a root vertex for a finite unilaterally connected
+            graph. First we will show that the algorithm will always finish and
+            return a vertex for a unilaterally connected graph:
+        </p>
+        <p>
+            Let n be the size of the set V(G). I will show that the algorithm
+            will finish in at most n steps. If you're familiar with big O
+            notation this would be an O(n) algorithm.
+        </p>
+        <p>
+            At each step of the algorithm, one vertex is considered as the root
+            candidate. We know that if the algorithm moves to a new vertex, that
+            new vertex must not be a vertex which reaches the current vertex.
+            We've already shown that every subsequent vertex the algorithm
+            considers reaches all previous vertices it has considered. Thus, it
+            is impossible for the algorithm to return to a vertex it has already
+            considered.
+        </p>
+        <p>
+            If the algorithm must consider a new vertex at each step, and there
+            are n total vertices, the algorithm can have a maximum of n steps
+            before finishing. Thus, for a finite graph the algorithm will always
+            finish and return a vertex.
+        </p>
+        <p>
+            Now that we know the algorithm will always finish, we need to prove
+            that the vertex it finds must be the root. We will do so with the
+            following proof by contradiction:
+        </p>
+        <p>
+            Let's say our algorithm finishes, returning some vertex v<sub>i</sub
+            >, and there is still some vertex v<sub>j</sub> which v<sub>i</sub>
+            does not reach. In that case, we know that v<sub>j</sub> must reach
+            v<sub>i</sub>
+            because the graph is unilaterally connected. However, if v<sub
+                >j</sub
+            >
+            reaches v<sub>i</sub>, then our algorithm would not have returned v<sub
+                >i</sub
+            >
+            because the set V<sub>i</sub><sup>r'</sup> would not have been empty.
+            Thus, if our algorithm finishes, it is impossible for it to return a
+            vertex which is not the root.
+        </p>
+        <p>
+            Because we know that the algorithm will always finish and find a
+            root, every unilaterally connected graph must have a root vertex.
+        </p>
     </div>
 </div>
 
