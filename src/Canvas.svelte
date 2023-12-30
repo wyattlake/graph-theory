@@ -1,6 +1,19 @@
 <script lang="ts">
     import { onMount } from "svelte";
-    import { Graph, Position, Node, Edge } from "$lib/graph";
+    import {
+        Graph,
+        Position,
+        Node,
+        Edge,
+        redNode,
+        redEdge,
+        blueNode,
+        blueEdge,
+        greenNode,
+        orangeNode,
+        GraphState,
+        purpleNode,
+    } from "$lib/graph";
     import IconSelect from "./IconSelect.svelte";
     import CreateIcon from "./icons/createIcon.svelte";
     import MoveIcon from "./icons/moveIcon.svelte";
@@ -32,6 +45,10 @@
 
     let graphUpdated = false;
 
+    let algorithmMode = false;
+    let graphStates: GraphState[] = [];
+    let algorithmIdx = 0;
+
     function DFS(node: Node) {
         let visited: Array<Node> = [];
 
@@ -42,8 +59,6 @@
 
     function DFSUtil(node: Node, visited: Array<Node>) {
         visited.push(node);
-
-        console.log(node);
 
         let possibleEdges = graph.directed
             ? node.outgoingEdges
@@ -57,6 +72,10 @@
             let otherNode = edge.start == node ? edge.end : edge.start;
 
             if (!visited.includes(otherNode)) {
+                edge.edgeColor = redEdge;
+                edge.arrowColor = redNode;
+                otherNode.color = purpleNode;
+
                 DFSUtil(otherNode, visited);
             }
         }
@@ -64,7 +83,12 @@
 
     function resetGraph() {
         for (var node of graph.nodes) {
-            node.color = "rgb(75, 130, 255)";
+            node.color = blueNode;
+        }
+
+        for (var edge of graph.edges) {
+            edge.edgeColor = blueEdge;
+            edge.arrowColor = blueNode;
         }
     }
 
@@ -157,15 +181,25 @@
                     } else if (modeId == 4) {
                         DFS(clickedNode);
                     } else if (modeId == 5) {
+                        resetGraph();
+
+                        algorithmMode = true;
+                        algorithmIdx = 0;
+                        graphStates = [];
+
                         function getRootNode(currentNode: Node, step: number) {
+                            currentNode.color = redNode;
+
                             let reachedNodes = DFS(currentNode);
                             let remainingNodes = [];
 
-                            for (var coloredNode of graph.nodes) {
-                                if (!reachedNodes.includes(coloredNode)) {
-                                    remainingNodes.push(coloredNode);
+                            for (var node of graph.nodes) {
+                                if (!reachedNodes.includes(node)) {
+                                    remainingNodes.push(node);
                                 }
                             }
+
+                            graphStates.push(graph.saveGraphState());
 
                             if (step > graph.nodes.length) {
                                 return null;
@@ -174,16 +208,21 @@
                             if (remainingNodes.length == 0) {
                                 return currentNode;
                             } else {
-                                return getRootNode(remainingNodes[0], step + 1);
+                                return getRootNode(
+                                    remainingNodes[remainingNodes.length - 1],
+                                    step + 1
+                                );
                             }
                         }
 
                         let rootNode = getRootNode(clickedNode, 1);
                         if (rootNode == null) {
+                            algorithmMode = false;
+                            resetGraph();
                             message = "Graph is not unilaterally connected";
                         } else {
                             message = "Found root node";
-                            rootNode.color = "rgb(0, 255, 0)";
+                            graph.loadGraphState(graphStates[algorithmIdx]);
                         }
                     } else {
                         draggingNode = clickedNode;
@@ -468,10 +507,7 @@
         context.imageSmoothingEnabled = true;
 
         return gameLoop((_, dt) => {
-            context.strokeStyle = "rgb(132, 170, 255)";
             context.lineWidth = edgeWidth;
-
-            context.fillStyle = "rgb(75, 130, 255)";
 
             if (elementIsVisible(canvas)) {
                 drawFrame(dt);
@@ -497,7 +533,43 @@
     </div>
 
     {#if modeId == 5}
-        <div class="canvasFooter"><p>{message}</p></div>
+        {#if algorithmMode == true}
+            <div class="canvasFooter">
+                <strong>Step {algorithmIdx + 1}/{graphStates.length}</strong>
+                <button
+                    on:click={() => {
+                        if (algorithmIdx + 1 < graphStates.length) {
+                            algorithmIdx++;
+                            graph.loadGraphState(graphStates[algorithmIdx]);
+                        }
+                    }}
+                    class="textButton"
+                >
+                    Next
+                </button>
+                <button
+                    on:click={() => {
+                        if (algorithmIdx > 0) {
+                            algorithmIdx--;
+                            graph.loadGraphState(graphStates[algorithmIdx]);
+                        }
+                    }}
+                    class="textButton">Previous</button
+                >
+                <button
+                    on:click={() => {
+                        algorithmMode = false;
+                        resetGraph();
+                        message = "Click a node to begin";
+                    }}
+                    class="textButton"
+                >
+                    Reset
+                </button>
+            </div>
+        {:else}
+            <div class="canvasFooter"><p>{message}</p></div>
+        {/if}
     {/if}
 </div>
 
@@ -510,6 +582,7 @@
         margin-bottom: 50px;
         height: var(--height);
         position: relative;
+        font-size: 18px;
     }
 
     .canvasHeader {
@@ -527,7 +600,7 @@
         padding: 0 25px;
         display: flex;
         height: 50px;
-        flex-direction: column;
+        flex-direction: row;
         justify-content: center;
         align-items: center;
     }
@@ -546,5 +619,15 @@
 
     p {
         margin-bottom: 0px;
+    }
+
+    .textButton {
+        margin-left: 10px;
+        border: none;
+        background-color: white;
+        padding: 0;
+        font-weight: 300;
+        margin-top: 0px;
+        font-size: 18px;
     }
 </style>

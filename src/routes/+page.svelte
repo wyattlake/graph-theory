@@ -146,14 +146,18 @@
             edges.
         </p>
         <p>
-            We use the shorthand <strong>K<sub>n</sub></strong> to represent a complete
-            graph with n vertices.
+            We use the shorthand <strong>K<span class="sub">n</span></strong> to
+            represent a complete graph with n vertices.
         </p>
-        <p>Below are graphs for K<sub>3</sub> and K<sub>4</sub>:</p>
+        <p>
+            Below are graphs for K<span class="sub">3</span> and K<span
+                class="sub">4</span
+            >:
+        </p>
         <Canvas
             width={700}
             height={350}
-            directed={true}
+            directed={false}
             graph={connected}
             modes={[2]}
         />
@@ -173,7 +177,7 @@
         <Canvas
             width={700}
             height={350}
-            directed={true}
+            directed={false}
             graph={cg}
             modes={[2]}
         />
@@ -181,7 +185,7 @@
             We consider two vertices
             <strong>joined</strong> if there exists a chain starting at one vertex
             and ending at the other. In the above graph, chain C shows that u and
-            v are connected
+            w are joined
         </p>
         <p>
             We consider a graph <strong>connected</strong> if there is a chain between
@@ -195,11 +199,14 @@
             above graph is connected but not complete because no edge exists
             between u and w.
         </p>
-        <p>
-            <strong>Challenge: </strong> Try to prove that all complete graphs are
-            connected. Think about what chain might exists between any two vertices
-            in a complete graph.
-        </p>
+        <div class="background">
+            <p>
+                <strong>Challenge: </strong> Try to prove that all complete graphs
+                are connected. Think about what chain might exists between any two
+                vertices in a complete graph.
+            </p>
+        </div>
+
         <h1>Directed Graphs</h1>
         <p>
             <strong>Directed graphs</strong> or <strong>digraphs</strong> are a type
@@ -298,57 +305,72 @@
             we have proven the above theorem.
         </p>
         <p>
-            Here is general walkthrough of the algorithm for finding the root
-            vertex:
-        </p>
-        <p>
-            Let's start with an arbitrary vertex v<sub>0</sub> in V(G) as our
-            candidate for the root vertex. Let's sort all the other vertices in
-            G into two sets. One containing all the vertices which v reaches (V<sub
+            <strong>Algorithm: </strong> Let's start with an arbitrary vertex v<sub
                 >0</sub
-            ><sup>r</sup>) and one containing all the vertices which v doesn't
-            reach (V<sub>0</sub><sup>r'</sup>).
+            >
+            in V(G) as our candidate for the root vertex. Let's sort all the other
+            vertices in G into two sets. One containing all the vertices which v
+            reaches (V<span class="sub">0</span><span class="sup">r</span>) and
+            one containing all the vertices which v doesn't reach (V<span
+                class="sub">0</span
+            ><span class="sup">r'</span>).
         </p>
         <p>Now we can consider the following cases:</p>
         <li>
-            If V<sub>0</sub><sup>r'</sup> is empty then v<sub>0</sub> reaches
-            all other edges and v<sub>0</sub> is our root vertex and we are done.
+            If V<span class="sub">0</span><span class="sup">r'</span> is empty
+            then v<span class="sub">0</span>
+            reaches all other edges and v<span class="sub">0</span> is our root vertex
+            and we are done.
         </li>
         <li>
-            Otherwise, we can take any vertex from V<sub>0</sub><sup>r</sup>
-            and call it v<sub>1</sub>. Note that v<sub>1</sub> must reach v<sub
-                >0</sub
-            > by the definition of unilaterally connected graphs.
+            Otherwise, we can take any vertex from V<span class="sub">0</span
+            ><span class="sup">r'</span>
+            and call it v<span class="sub">1</span>. Note that v<span
+                class="sub">1</span
+            >
+            must reach v<sub>0</sub> by the definition of unilaterally connected
+            graphs.
         </li>
         <p>
-            Now we consider v<sub>1</sub> as our candidate for the root vertex.
-            We already know that v<sub>1</sub> reaches v<sub>0</sub>. However, v<sub
-                >1</sub
-            >
-            also reaches every other vertex which v<sub>0</sub> reaches. We can show
-            that in the following way:
+            Now we consider v<span class="sub">1</span> as our candidate for the
+            root vertex. We already know that v<span class="sub">1</span>
+            reaches v<span class="sub">0</span>. However, v<sub>1</sub>
+            also reaches every other vertex which v<span class="sub">0</span> reaches.
+            We can show that in the following way:
         </p>
         <p>
-            Remember a vertex reaches another vertex is there is a path between
-            them. We know that there is a path between v<sub>0</sub> and v<sub
-                >1</sub
+            Remember a vertex reaches another vertex if there is a path between
+            them. We know that there is a path between v<span class="sub"
+                >0</span
             >
-            because v<sub>1</sub> reaches v<sub>0</sub>. Now consider any vertex
-            u which v<sub>0</sub> reaches. We can create a path from v<sub
-                >1</sub
-            >
-            to u by appending the path from v<sub>0</sub> to u to the path from
-            v<sub>1</sub> to v<sub>0</sub>. Thus, v<sub>1</sub> reaches v<sub
-                >0</sub
-            >
-            and any other vertex which v<sub>0</sub> reaches.
+            and v<sub>1</sub>
+            because v<span class="sub">1</span> reaches v<span class="sub"
+                >0</span
+            >. Now consider any vertex u which v<span class="sub">0</span>
+            reaches. We can create a path from v<sub>1</sub>
+            to u by appending the path from v<span class="sub">0</span> to u to
+            the path from v<span class="sub">1</span> to v<span class="sub"
+                >0</span
+            >. Thus, v<span class="sub">1</span> reaches v<sub>0</sub>
+            and any other vertex which v<span class="sub">0</span> reaches.
         </p>
         <p>
-            Now we repeat this process until we eventually land on a vertex
-            which reaches all others, this vertex is the root.
+            Now we repeat this process with v<span class="sub">2</span>, v<span
+                class="sub">3</span
+            >, etc until we eventually land on a vertex which reaches all
+            others, this vertex is the root.
         </p>
 
-        <p>Click on a vertex in the graph below to start the algorithm:</p>
+        <p>
+            Use the demo below to visualize an algorithm. When you click on a
+            vertex that vertex will become the candidate for the root vertex and
+            will be colored red. Any vertex which it can reach will be colored
+            purple. By clicking the next button, the algorithm will pick the
+            next root candidate out of all vertices which are not reached. If
+            the graph is unilaterally connected, the root vertex will eventually
+            be found. Feel free to make your own graph and to try finding the
+            root with the algorithm.
+        </p>
 
         <Canvas
             width={700}
@@ -357,6 +379,13 @@
             graph={unig}
             modes={[5, 1, 2, 3]}
         />
+
+        <p>
+            If you're having trouble understanding the algorithm, try to think
+            of it like walking backwards on a path. No matter where you start,
+            if you try walking back down every possible path you will eventually
+            find the start of the path which is our root vertex.
+        </p>
 
         <p>
             With this algorithm described, we now just need to prove that it
@@ -390,24 +419,36 @@
             following proof by contradiction:
         </p>
         <p>
-            Let's say our algorithm finishes, returning some vertex v<sub>i</sub
-            >, and there is still some vertex v<sub>j</sub> which v<sub>i</sub>
-            does not reach. In that case, we know that v<sub>j</sub> must reach
-            v<sub>i</sub>
+            Let's say our algorithm finishes, returning some vertex v<span
+                class="sub">i</span
+            >, and there is still some vertex v<span class="sub">j</span> which
+            v<span class="sub">i</span>
+            does not reach. In that case, we know that v<span class="sub"
+                >j</span
+            >
+            must reach v<span class="sub">i</span>
             because the graph is unilaterally connected. However, if v<sub
                 >j</sub
             >
-            reaches v<sub>i</sub>, then our algorithm would not have returned v<sub
-                >i</sub
-            >
-            because the set V<sub>i</sub><sup>r'</sup> would not have been empty.
-            Thus, if our algorithm finishes, it is impossible for it to return a
-            vertex which is not the root.
+            reaches v<span class="sub">i</span>, then our algorithm would not
+            have returned v<sub>i</sub>
+            because the set V<span class="sub">i</span><span class="sup"
+                >r'</span
+            > would not have been empty. Thus, if our algorithm finishes, it is impossible
+            for it to return a vertex which is not the root.
         </p>
         <p>
             Because we know that the algorithm will always finish and find a
             root, every unilaterally connected graph must have a root vertex.
         </p>
+
+        <div class="background">
+            <p>
+                <strong>Challenge: </strong> Given the proof above, try to prove
+                that any unilaterally connected graph has a path going through all
+                of its vertices.
+            </p>
+        </div>
     </div>
 </div>
 

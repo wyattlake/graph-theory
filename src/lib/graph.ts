@@ -1,3 +1,13 @@
+export let redNode = "rgb(255, 70, 70)";
+export let redEdge = "rgb(255, 129, 129)";
+export let blueNode = "rgb(75, 130, 255)";
+export let blueEdge = "rgb(132, 170, 255)";
+export let greenNode = "rgb(139, 221, 79)";
+export let greenEdge = "rgb(188, 227, 170)";
+export let orangeNode = "rgb(250, 182, 72)";
+export let orangeEdge = "rgb(248, 217, 166)";
+export let purpleNode = "rgb(186, 113, 255)";
+
 class Position {
     x: number;
     y: number;
@@ -44,7 +54,7 @@ class Node {
         this.incomingEdges = [];
         this.outgoingEdges = [];
         this.label = "";
-        this.color = "rgb(75, 130, 255)";
+        this.color = blueNode;
     }
 
     static withLabel(x: number, y: number, label: string) {
@@ -63,8 +73,8 @@ class Edge {
     constructor(start: Node, end: Node) {
         this.start = start;
         this.end = end;
-        this.edgeColor = "rgb(132, 170, 255)";
-        this.arrowColor = "rgb(75, 130, 255)";
+        this.edgeColor = blueEdge;
+        this.arrowColor = blueNode;
     }
 
     contains(node: Node) {
@@ -187,6 +197,50 @@ class Graph {
         }
         return false;
     }
+
+    saveGraphState() {
+        let nodeColors = new Array<string>(this.nodes.length);
+        let edgeColors = new Array<string>(this.edges.length);
+        let arrowColors = new Array<string>(this.edges.length);
+
+        for (let i = 0; i < this.nodes.length; i++) {
+            nodeColors[i] = this.nodes[i].color;
+        }
+
+        for (let i = 0; i < this.edges.length; i++) {
+            edgeColors[i] = this.edges[i].edgeColor;
+            arrowColors[i] = this.edges[i].arrowColor;
+        }
+
+        return new GraphState(nodeColors, edgeColors, arrowColors);
+    }
+
+    loadGraphState(graphState: GraphState) {
+        for (let i = 0; i < this.nodes.length; i++) {
+            this.nodes[i].color = graphState.nodeColors[i];
+        }
+
+        for (let i = 0; i < this.edges.length; i++) {
+            this.edges[i].edgeColor = graphState.edgeColors[i];
+            this.edges[i].arrowColor = graphState.arrowColors[i];
+        }
+    }
 }
 
-export { Position, Node, Edge, Graph };
+class GraphState {
+    nodeColors: string[];
+    edgeColors: string[];
+    arrowColors: string[];
+
+    constructor(
+        nodeColors: string[],
+        edgeColors: string[],
+        arrowColors: string[]
+    ) {
+        this.nodeColors = nodeColors;
+        this.edgeColors = edgeColors;
+        this.arrowColors = arrowColors;
+    }
+}
+
+export { Position, Node, Edge, Graph, GraphState };
