@@ -35,6 +35,8 @@
 
     export let modes: Array<number> = [1, 2, 3];
 
+    export let edgeAlgorithmCallback: null | ((edge: Edge) => void) = null;
+
     let optionItems = [
         { id: 1, icon: CreateIcon, text: "Create", selectedColor: "#84AAFF" },
         { id: 2, icon: MoveIcon, text: "Move", selectedColor: "#9CE68B" },
@@ -42,6 +44,7 @@
         { id: 4, icon: RobotIcon, text: "Algorithm", selectedColor: "#FFB884" },
         { id: 5, icon: RobotIcon, text: "Algorithm", selectedColor: "#FFB884" },
         { id: 6, icon: PaintIcon, text: "Color", selectedColor: "#FFB884" },
+        { id: 7, icon: RobotIcon, text: "Algorithm", selectedColor: "#FFB884" },
     ];
 
     let message = "Click a node to begin";
@@ -55,6 +58,8 @@
     let currentNodeColor: string = redNode;
     let currentEdgeColor: string = redEdge;
     let hidePalette = false;
+
+    let edgeDeleteMode = false;
 
     function DFS(node: Node) {
         let visited: Array<Node> = [];
@@ -304,6 +309,11 @@
                             } else if (modeId == 3) {
                                 graph.removeEdge(edge);
                                 graphUpdated = true;
+                                return;
+                            } else if (modeId == 7) {
+                                if (edgeAlgorithmCallback != null) {
+                                    edgeAlgorithmCallback(edge);
+                                }
                                 return;
                             }
                         }
@@ -701,6 +711,20 @@
                         currentEdgeColor = purpleEdge;
                     }}
                 ></button>
+            {/if}
+        </div>
+    {:else if modeId == 7}
+        <div class="canvasFooter">
+            {#if edgeDeleteMode}
+                <p>Click an edge to begin</p>
+            {:else}
+                <button
+                    class="textButton"
+                    on:click={() => {
+                        options = [optionItems[6]];
+                        edgeDeleteMode = true;
+                    }}>Click here to finalize graph</button
+                >
             {/if}
         </div>
     {/if}

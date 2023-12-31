@@ -81,3 +81,23 @@ li {
 img {
     align-self: center;
 }
+
+.nextLesson {
+    background-color: white;
+    border: none;
+    text-decoration: underline;
+    font-size: 18px;
+    margin-top: 20px;
+}
+
+.graphEquation {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.graphEquation > p {
+    font-size: 30px;
+    margin-bottom: 0;
+}

@@ -6,11 +6,14 @@
         grayNode,
         greenEdge,
         greenNode,
+        purpleEdge,
+        purpleNode,
         redEdge,
         redNode,
     } from "$lib/color";
     import { Edge, Graph, Node } from "$lib/graph";
     import Canvas from "../../Canvas.svelte";
+    import GraphDisplay from "../../GraphDisplay.svelte";
 
     let n1 = Node.coloredNode(120, 80, grayNode, grayEdge);
     let n2 = Node.coloredNode(520, 265, grayNode, grayEdge);
@@ -72,6 +75,51 @@
     b.addEdge(Edge.coloredEdge(b3, b2));
     b.addEdge(Edge.coloredEdge(b2, b4));
     b.addEdge(Edge.coloredEdge(b1, b4));
+
+    let d1 = new Node(120, 80);
+    let d2 = new Node(520, 265);
+    let d3 = new Node(394, 100);
+    let d4 = new Node(250, 270);
+
+    let gd = new Graph([d1, d2, d3, d4], [], false);
+
+    gd.addEdge(new Edge(d1, d2));
+    gd.addEdge(new Edge(d2, d3));
+    gd.addEdge(new Edge(d1, d3));
+    gd.addEdge(new Edge(d1, d4));
+    gd.addEdge(new Edge(d2, d4));
+
+    let e1 = new Node(0, 105);
+    let e2 = new Node(150, 105);
+
+    let adjacent = new Graph([e1, e2], [], false);
+
+    adjacent.addEdge(new Edge(e1, e2));
+
+    let nonAdjacent = new Graph([e1, e2], [], false);
+
+    let combined = new Graph([e1], [], false);
+
+    let sg1 = new Node(85, 160);
+    let sg2 = new Node(250, 85);
+    let sg3 = new Node(272, 282);
+
+    let sg4 = new Node(464, 237);
+    let sg5 = new Node(556, 98);
+    sg4.color = greenNode;
+    sg5.color = greenNode;
+
+    let sg = new Graph([sg1, sg2, sg3, sg4, sg5], [], false);
+
+    let sge = new Edge(sg4, sg5);
+    sge.edgeColor = greenEdge;
+
+    sg.addEdge(sge);
+    sg.addEdge(new Edge(sg1, sg2));
+    sg.addEdge(new Edge(sg1, sg3));
+    sg.addEdge(new Edge(sg3, sg2));
+
+    let displayGraphs: Array<Array<Graph>> = [];
 </script>
 
 <svelte.head>
@@ -116,6 +164,11 @@
             graph={map}
             modes={[6, 2]}
         />
+        <p>
+            If you can color the graph above, then that coloring could also be
+            used to color the regions in the original map without having any
+            adjacent states share a color.
+        </p>
         <div class="background">
             <p>
                 <strong>History:</strong> The Four Color Theorem states that any
@@ -155,7 +208,9 @@
         <p>
             Let's find chromatic functions for some basic graphs. We'll start
             with a graph with n vertices and 0 edges. Below is an example of
-            such a graph where n = 4;
+            such a graph where n = 4. We will call this graph G<span class="sub"
+                >1</span
+            >.
         </p>
         <Canvas
             width={700}
@@ -200,7 +255,7 @@
         </p>
         <p>
             Now let's try a more complicated example. Consider the following
-            graph:
+            graph G<span class="sub">2</span>:
         </p>
         <Canvas
             width={700}
@@ -211,11 +266,11 @@
             modes={[6, 2]}
         />
         <p>
-            Starting at a, we know a has x possible colors. We also know that b
-            has a different color than a and that d has a different color than
-            a. However, looking at b and d together, they could either have the
-            same color or have different colors. Thus, we'll consider both of
-            those cases.
+            Starting at vertex a, we know a has x possible colors. We also know
+            that b has a different color than a and that d has a different color
+            than a. However, looking at b and d together, they could either have
+            the same color or have different colors. Thus, we'll consider both
+            of those cases.
         </p>
         <p>
             In the first case where b and d have the same color, there are x - 1
@@ -226,24 +281,28 @@
         </p>
         <p>
             So, if we multiply all of the color options for a, b, c, and d
-            together, we find that the chromatic function for this case is
-            x(x-1)<span class="sup">2</span>.
+            together, we find that the chromatic function for this case is x(x -
+            1)<span class="sup">2</span>.
         </p>
         <p>
             Now onto the case where b and d have different colors. There are x -
             1 choices for b and x - 2 choices for d (because it must have a
-            different color than b). Finally, d has x - 2 color optinos because
+            different color than b). Finally, d has x - 2 color options because
             it is adjacent to b and d. This gives us the total chromatic
-            function of x(x-1)(x-2)<span class="sup">2</span> for this case.
+            function of x(x - 1)(x - 2)<span class="sup">2</span> for this case.
         </p>
         <p>
             Now, we can add up the number of colorings for the two cases to
             determine the total chromatic function:
         </p>
         <p>
-            P(G, x) = x(x-1)<span class="sup">2</span>
-            + x(x-1)(x-2)<span class="sup">2</span> = x<span class="sup">4</span
-            >-4x<span class="sup">3</span>+6x<span class="sup">2</span>-3x
+            P(G<span class="sub">2</span>, x) = x(x - 1)<span class="sup"
+                >2</span
+            >
+            + x(x - 1)(x - 2)<span class="sup">2</span> = x<span class="sup"
+                >4</span
+            >
+            - 4x<span class="sup">3</span> + 6x<span class="sup">2</span> - 3x
         </p>
         <div class="background">
             <p>
@@ -252,8 +311,8 @@
                 chromatic function:
             </p>
             <p>
-                P(K<span class="sub">n</span>, x) = x(x-1)(x-2)(x-3) &middot;
-                &middot; &middot; (x-(n-1))
+                P(K<span class="sub">n</span>, x) = x(x - 1)(x - 2)(x - 3)
+                &middot; &middot; &middot; (x- (n - 1))
             </p>
             <p>
                 Remember that a complete graph is a graph where every vertex is
@@ -296,20 +355,199 @@
             called a <strong>reduction</strong>.
         </p>
         <p>
-            We will start by looking at the abstract case of two vertices in a
-            graph. The least restricted possibility for those two vertices is to
-            have them not be adjacent to each other. In that case, the vertices
-            could either be the same color or different colors. Thus, if we add
-            together all the possible colorings where the nodes are the same
-            color with all the possible colorings where the nodes are different
-            colors, we will get the total number of colorings.
+            <strong>Reduction 1:</strong> Before diving into creating a
+            reduction to find the chromatic function of any graph, let's try a
+            simpler case where we have a graph G which has two
+            <strong>subgraphs</strong> without any edges between them. A subgraph
+            is a graph which is entirely composed of edges and vertices from another
+            graph. Below is an example of a graph with two disconnected subgraphs.
+        </p>
+        <Canvas
+            width={700}
+            height={350}
+            directed={false}
+            graph={sg}
+            modes={[2]}
+        />
+        <p>
+            We will call the first subgraph S<span class="sub">1</span> and the
+            second S<span class="sub">2</span>. The number of colorings for S<span
+                class="sub">1</span
+            >
+            given x colors is P(S<span class="sub">1</span>, x) and P(S<span
+                class="sub">2</span
+            >, x) is the equivalent for S<span class="sub">2</span>. We want to
+            find a chromatic function for G using these functions.
         </p>
         <p>
-            In the previous section we found a formula for the chromatic
-            function of disconnected nodes. This is equivalent to the least
-            restricted case.
+            For each of the P(S<span class="sub">1</span>, x) colorings for S<span
+                class="sub">1</span
+            >, we have P(S<span class="sub">2</span> x) colorings for S<span
+                class="sub">2</span
+            >
+            because the subgraphs are disconnected and their colorings do not affect
+            each other. Thus, we have P(S<span class="sub">1</span>, x)P(S<span
+                class="sub">2</span
+            >, x) colorings for G. With this formula we've reduced the problem
+            of finding a chromatic function for G into the smaller steps of
+            finding chromatic functions for S<span class="sub">1</span> and S<span
+                class="sub">2</span
+            >
         </p>
-        <p></p>
+        <p>
+            <strong>Reduction 2:</strong> Now we will try and find a more general
+            reduction formula for graphs. We will start by looking at the abstract
+            case of two vertices.
+        </p>
+        <p>
+            The least restricted possibility for those two vertices is to have
+            them not be adjacent to each other. In that case, the vertices could
+            either be the same color or different colors. Thus, if we add
+            together all the possible colorings where the vertices are the same
+            color with all the possible colorings where the vertices are
+            different colors, we will get the total number of colorings for non
+            adjacent vertices.
+        </p>
+        <p>
+            Now let's conceptualize what these three possibilities for vertices
+            look like in a graph:
+        </p>
+        <li>
+            For non adjacent vertices, we simply don't have an edge between
+            them.
+        </li>
+        <li>
+            For the case where the vertices are the same color, we can combine
+            the vertices into one vertex, forcing them to share a color.
+        </li>
+        <li>
+            For the case where the vertices are forced to be different colors,
+            this is equivalent to having an edge between them.
+        </li>
+        <p>
+            So now we know that the non adjacent case's function is equivalent
+            to the sum of the adjacent and combined cases:
+        </p>
+        <div class="graphEquation">
+            <GraphDisplay
+                height={200}
+                graph={nonAdjacent}
+                scale={0.4}
+                edgeColor={purpleEdge}
+                nodeColor={purpleNode}
+            />
+            <p>=</p>
+            <GraphDisplay
+                height={200}
+                graph={combined}
+                scale={0.4}
+                edgeColor={greenEdge}
+                nodeColor={greenNode}
+            />
+            <p>+</p>
+            <GraphDisplay
+                height={200}
+                graph={adjacent}
+                scale={0.4}
+                edgeColor={blueEdge}
+                nodeColor={blueNode}
+            />
+        </div>
+        <p>
+            Now our goal is to find ways to make the problem of finding the
+            chromatic function of a graph simpler. So, we should decide which of
+            these cases simplify the problem instead of making it more complex.
+        </p>
+        <p>
+            Note that having less edges, like in the first case, makes the
+            problem simpler, because we have already found formulas for
+            determing the chromatic function of disconnected graphs and
+            disconnected subgraphs.
+        </p>
+        <p>
+            Combining vertices, like in the second case, also makes the problem
+            simpler because it means the graph has less vertices and edges
+            overall.
+        </p>
+        <p>
+            Now because these two cases are simpler than the case where the
+            edges are adjacent, we can re-arrange our original formula to
+            express the most complicated case in terms of the simpler ones
+        </p>
+        <div class="graphEquation">
+            <GraphDisplay
+                height={200}
+                graph={adjacent}
+                scale={0.4}
+                edgeColor={blueEdge}
+                nodeColor={blueNode}
+            />
+            <p>=</p>
+            <GraphDisplay
+                height={200}
+                graph={nonAdjacent}
+                scale={0.4}
+                edgeColor={purpleEdge}
+                nodeColor={purpleNode}
+            />
+            <p>-</p>
+            <GraphDisplay
+                height={200}
+                graph={combined}
+                scale={0.4}
+                edgeColor={greenEdge}
+                nodeColor={greenNode}
+            />
+        </div>
+        <p>
+            Thus, if we see two adjacent vertices in a graph, we know we can
+            find the chromatic function for that graph by taking the chromatic
+            function of an equivalent graph where those vertices are not
+            adjacent and subtracting from that the chromatic function of an
+            equivalent graph where those vertices are combined.
+        </p>
+        <p>
+            If you repeat this process of selecting edges within a graph and
+            then computing the chromatic functions of the combined and non
+            adjacent alternate versions of the graph, you will eventually arrive
+            at graphs which you know the chromatic function of. From there you
+            can build up a chromatic function for the entire graph.
+        </p>
+        <p>
+            Below is an interactive graph where you can watch this algorithm in
+            action. Feel free to make any modifications to the graph before
+            starting. When you are ready to start, click on the robot to enter
+            the algorithm mode and click on the prompt at the bottom to finalize
+            your graph.
+        </p>
+        <Canvas
+            width={700}
+            height={350}
+            directed={false}
+            graph={gd}
+            modes={[7, 1, 2, 3]}
+            edgeAlgorithmCallback={(edge) => {
+                if (displayGraphs.length == 0) {
+                    displayGraphs.push([gd]);
+                }
+
+                displayGraphs = displayGraphs;
+            }}
+        />
+
+        {#each displayGraphs as graphList}
+            <div class="graphEquation">
+                {#each graphList as graph}
+                    <GraphDisplay
+                        height={350}
+                        {graph}
+                        scale={0.4}
+                        edgeColor={blueEdge}
+                        nodeColor={blueNode}
+                    />
+                {/each}
+            </div>
+        {/each}
     </div>
 </div>
 

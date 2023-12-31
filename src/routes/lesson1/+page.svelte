@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { goto } from "$app/navigation";
     import { Edge, Graph, Node } from "$lib/graph";
     import Canvas from "../../Canvas.svelte";
 
@@ -130,6 +131,15 @@
             vertices in the graph and the set E(G) is the set of edges in the
             graph.
         </p>
+        <div class="background">
+            <p>
+                <strong>Refresher:</strong> A <strong>set</strong> is an unordered
+                collection of unique items. Sets are often denoted with capital letters
+                and their items are listed in curly braces. For example, a set with
+                three integers could be written in the following way:
+            </p>
+            <p>{`S = {1, 8, 4}`}</p>
+        </div>
         <p>
             For example, the following statement defines a graph with three
             vertices and an edge between the first two vertices:
@@ -322,6 +332,20 @@
                 class="sub">0</span
             ><span class="sup">r'</span>).
         </p>
+        <div class="background">
+            <p>
+                <strong>Refresher:</strong> In set theory, a tick mark indicates
+                the complement of a set, which is a set containing all the elements
+                which are not in the original set.
+            </p>
+            <p>
+                In our case, V<span class="sub">0</span><span class="sup"
+                    >r'</span
+                >
+                contains all the vertices not in V<span class="sub">0</span
+                ><span class="sup">r</span>.
+            </p>
+        </div>
         <p>Now we can consider the following cases:</p>
         <li>
             If V<span class="sub">0</span><span class="sup">r'</span> is empty
@@ -425,6 +449,14 @@
             that the vertex it finds must be the root. We will do so with the
             following proof by contradiction:
         </p>
+        <div class="background">
+            <p>
+                <strong>Refresher:</strong> in a proof by contradiction, we state
+                the inverse (or the opposite) of what we want to prove, and then
+                show that this opposite statement must be false. This then means
+                that our original statement is true.
+            </p>
+        </div>
         <p>
             Let's say our algorithm finishes, returning some vertex v<span
                 class="sub">i</span
@@ -456,6 +488,13 @@
                 of its vertices.
             </p>
         </div>
+
+        <button
+            class="nextLesson"
+            on:click={() => {
+                goto("/lesson2");
+            }}>Next Lesson</button
+        >
     </div>
 </div>
 

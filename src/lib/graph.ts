@@ -281,6 +281,22 @@ class Graph {
             this.edges[i].arrowColor = graphState.arrowColors[i];
         }
     }
+
+    getMinAndMax() {
+        let min = Infinity;
+        let max = -Infinity;
+        for (var node of this.nodes) {
+            if (node.position.x < min) {
+                min = node.position.x;
+            }
+
+            if (node.position.x > max) {
+                max = node.position.x;
+            }
+        }
+
+        return new Position(min, max);
+    }
 }
 
 class GraphState {
