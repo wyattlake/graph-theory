@@ -15,6 +15,7 @@
         grayNode,
         greenEdge,
         greenNode,
+        purpleEdge,
         purpleNode,
         redEdge,
         redNode,
@@ -51,8 +52,8 @@
     let graphStates: GraphState[] = [];
     let algorithmIdx = 0;
 
-    let currentNodeColor: string = blueNode;
-    let currentEdgeColor: string = blueEdge;
+    let currentNodeColor: string = redNode;
+    let currentEdgeColor: string = redEdge;
     let hidePalette = false;
 
     function DFS(node: Node) {
@@ -117,7 +118,7 @@
 
     let modeId: number = modes.length > 0 ? modes[0] : -1;
 
-    const nodeRadius = 7;
+    const nodeRadius = 8;
     const nodeBuffer = 2;
     const edgeWidth = 6;
     const edgeBuffer = 10;
@@ -175,6 +176,7 @@
 
         addEventListener("mousedown", (event) => {
             let clickPos = getCanvasPosition(event);
+            console.log(clickPos);
             if (clickPos != null) {
                 let clickedNode: Node | null = null;
                 let closestDistance = Infinity;
@@ -692,11 +694,11 @@
                     }}
                 ></button>
                 <button
-                    class="paintColor green"
+                    class="paintColor purple"
                     style="margin-left: 15px"
                     on:click={() => {
-                        currentNodeColor = greenNode;
-                        currentEdgeColor = greenEdge;
+                        currentNodeColor = purpleNode;
+                        currentEdgeColor = purpleEdge;
                     }}
                 ></button>
             {/if}
@@ -764,8 +766,8 @@
     .paintColor {
         border-radius: 100px;
         border: none;
-        width: 24px;
-        height: 24px;
+        width: 22px;
+        height: 22px;
     }
 
     .red {

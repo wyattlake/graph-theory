@@ -1,13 +1,13 @@
 export let redNode = "rgb(255, 70, 70)",
     redEdge = "rgb(255, 129, 129)",
     blueNode = "rgb(75, 130, 255)",
-    blueEdge = "rgb(132, 170, 255)",
+    blueEdge = "rgb(145, 177, 248)",
     greenNode = "rgb(139, 221, 79)",
     greenEdge = "rgb(165, 216, 127)",
     orangeNode = "rgb(250, 182, 72)",
     orangeEdge = "rgb(248, 217, 166)",
     purpleNode = "rgb(186, 113, 255)",
-    purpleEdge = "rgb(211, 183, 255)",
+    purpleEdge = "rgb(209, 173, 244)",
     grayNode = "rgb(191, 191, 191)",
     grayEdge = "rgb(200, 200, 200)";
 

@@ -58,6 +58,10 @@ class Node {
         this.edgeColor = null;
     }
 
+    static uncoloredNode(x: number, y: number) {
+        return this.coloredNode(x, y, grayNode, grayEdge);
+    }
+
     static coloredNode(x: number, y: number, color: string, edgeColor: string) {
         let node = new Node(x, y);
         node.color = color;

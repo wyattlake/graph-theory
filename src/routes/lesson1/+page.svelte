@@ -390,8 +390,8 @@
         <p>
             If you're having trouble understanding the algorithm, try to think
             of it like walking backwards on a path. No matter where you start,
-            if you try walking back down every possible path you will eventually
-            find the start of the path which is our root vertex.
+            if you try walking back down every possible path, you will
+            eventually find the start of the path, which is our root vertex.
         </p>
 
         <p>
