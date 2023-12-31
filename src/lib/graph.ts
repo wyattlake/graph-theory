@@ -1,12 +1,4 @@
-export let redNode = "rgb(255, 70, 70)";
-export let redEdge = "rgb(255, 129, 129)";
-export let blueNode = "rgb(75, 130, 255)";
-export let blueEdge = "rgb(132, 170, 255)";
-export let greenNode = "rgb(139, 221, 79)";
-export let greenEdge = "rgb(188, 227, 170)";
-export let orangeNode = "rgb(250, 182, 72)";
-export let orangeEdge = "rgb(248, 217, 166)";
-export let purpleNode = "rgb(186, 113, 255)";
+import { blueEdge, blueNode, grayEdge, grayNode } from "$lib/color";
 
 class Position {
     x: number;
@@ -28,9 +20,17 @@ class Node {
     incomingEdges: Edge[];
     label: string;
     color: string;
+    edgeColor: string | null;
 
-    static fromPosition(position: Position) {
-        return new Node(position.x, position.y);
+    static fromPosition(position: Position, colored: boolean) {
+        let node = new Node(position.x, position.y);
+
+        if (colored) {
+            node.color = grayNode;
+            node.edgeColor = grayEdge;
+        }
+
+        return node;
     }
 
     addEdge(edge: Edge) {
@@ -55,6 +55,15 @@ class Node {
         this.outgoingEdges = [];
         this.label = "";
         this.color = blueNode;
+        this.edgeColor = null;
+    }
+
+    static coloredNode(x: number, y: number, color: string, edgeColor: string) {
+        let node = new Node(x, y);
+        node.color = color;
+        node.edgeColor = edgeColor;
+
+        return node;
     }
 
     static withLabel(x: number, y: number, label: string) {
@@ -68,6 +77,8 @@ class Edge {
     start: Node;
     end: Node;
     edgeColor: string;
+    startColor: string | null;
+    endColor: string | null;
     arrowColor: string;
 
     constructor(start: Node, end: Node) {
@@ -75,6 +86,16 @@ class Edge {
         this.end = end;
         this.edgeColor = blueEdge;
         this.arrowColor = blueNode;
+        this.startColor = null;
+        this.endColor = null;
+    }
+
+    static coloredEdge(start: Node, end: Node) {
+        let edge = new Edge(start, end);
+        edge.startColor = start.edgeColor;
+        edge.endColor = end.edgeColor;
+
+        return edge;
     }
 
     contains(node: Node) {

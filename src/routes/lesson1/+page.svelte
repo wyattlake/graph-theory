@@ -1,6 +1,6 @@
 <script lang="ts">
     import { Edge, Graph, Node } from "$lib/graph";
-    import Canvas from "../Canvas.svelte";
+    import Canvas from "../../Canvas.svelte";
 
     let n1 = new Node(100, 100);
     let n2 = new Node(224, 265);
@@ -103,14 +103,21 @@
             Below is an example of a graph with three edges and four vertices.
             You can use the interactive playground to add and remove edges to
             the graph.
+            <Canvas
+                width={700}
+                height={350}
+                directed={false}
+                graph={g1}
+                modes={[1, 2, 3]}
+            />
         </p>
-        <Canvas
-            width={700}
-            height={350}
-            directed={false}
-            graph={g1}
-            modes={[1, 2, 3]}
-        />
+        <p>
+            You click to create a vertex and drag to create an edge. Dragging
+            between two vertices will create a edge. To move vertices, you can
+            click the arrow icon and then drag them around the canvas. You can
+            also click the trash icon to switch to delete mode where you can
+            click edges and nodes to remove them.
+        </p>
         <p>
             You may see the terms <strong>node</strong> and
             <strong>line</strong> used to describe graphs. They are equivalent to

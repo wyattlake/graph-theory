@@ -1,30 +1,26 @@
 <script lang="ts">
     import { onMount } from "svelte";
-    import {
-        Graph,
-        Position,
-        Node,
-        Edge,
-        redNode,
-        redEdge,
-        blueNode,
-        blueEdge,
-        greenNode,
-        orangeNode,
-        GraphState,
-        purpleNode,
-    } from "$lib/graph";
+    import { Graph, Position, Node, Edge, GraphState } from "$lib/graph";
     import IconSelect from "./IconSelect.svelte";
     import CreateIcon from "./icons/createIcon.svelte";
     import MoveIcon from "./icons/moveIcon.svelte";
     import DeleteIcon from "./icons/deleteIcon.svelte";
     import RobotIcon from "./icons/robotIcon.svelte";
     import type IconOption from "./lib/iconOption";
+    import {
+        Color,
+        blueEdge,
+        blueNode,
+        purpleNode,
+        redEdge,
+        redNode,
+    } from "$lib/color";
 
     export let width: number,
         height: number,
         pixelRatio: number = 1.5,
-        directed: boolean = false;
+        directed: boolean = false,
+        colored: boolean = false;
 
     let canvas: HTMLCanvasElement;
     let frame: number;
@@ -107,7 +103,7 @@
 
     const nodeRadius = 7;
     const nodeBuffer = 2;
-    const edgeWidth = 5;
+    const edgeWidth = 6;
     const edgeBuffer = 10;
 
     let draggingNode: Node | null = null;
@@ -244,10 +240,18 @@
                                 }
 
                                 let newNode = Node.fromPosition(
-                                    edge.getSnappedPoint(clickPos, edgeDistance)
+                                    edge.getSnappedPoint(
+                                        clickPos,
+                                        edgeDistance
+                                    ),
+                                    colored
                                 );
-                                let firstEdge = new Edge(edge.start, newNode);
-                                let secondEdge = new Edge(newNode, edge.end);
+                                let firstEdge = colored
+                                    ? Edge.coloredEdge(edge.start, newNode)
+                                    : new Edge(edge.start, newNode);
+                                let secondEdge = colored
+                                    ? Edge.coloredEdge(newNode, edge.end)
+                                    : new Edge(newNode, edge.end);
                                 graph.addNode(newNode);
                                 graph.addEdge(firstEdge);
                                 graph.addEdge(secondEdge);
@@ -266,7 +270,7 @@
                         if (closestDistance < nodeRadius * 2 + nodeBuffer) {
                             return;
                         }
-                        let newNode = Node.fromPosition(clickPos);
+                        let newNode = Node.fromPosition(clickPos, colored);
                         graph.addNode(newNode);
                         draggingNode = newNode;
                         graphUpdated = true;
@@ -323,7 +327,8 @@
                                     edge.getSnappedPoint(
                                         releasePos,
                                         edgeDistance
-                                    )
+                                    ),
+                                    colored
                                 );
 
                                 if (
@@ -334,21 +339,36 @@
                                     return;
                                 }
 
-                                let firstEdge = new Edge(edge.start, newNode);
-                                let secondEdge = new Edge(newNode, edge.end);
+                                let firstEdge = colored
+                                    ? Edge.coloredEdge(edge.start, newNode)
+                                    : new Edge(edge.start, newNode);
+                                let secondEdge = colored
+                                    ? Edge.coloredEdge(newNode, edge.end)
+                                    : new Edge(newNode, edge.end);
                                 graph.addNode(newNode);
                                 graph.addEdge(firstEdge);
                                 graph.addEdge(secondEdge);
-                                graph.addEdge(new Edge(draggingNode, newNode));
+                                graph.addEdge(
+                                    colored
+                                        ? Edge.coloredEdge(
+                                              draggingNode,
+                                              newNode
+                                          )
+                                        : new Edge(draggingNode, newNode)
+                                );
                                 graph.removeEdge(edge);
                                 graphUpdated = true;
                                 draggingNode = null;
                                 return;
                             }
                         }
-                        let newNode = Node.fromPosition(releasePos);
+                        let newNode = Node.fromPosition(releasePos, colored);
                         graph.addNode(newNode);
-                        graph.addEdge(new Edge(draggingNode, newNode));
+                        graph.addEdge(
+                            colored
+                                ? Edge.coloredEdge(draggingNode, newNode)
+                                : new Edge(draggingNode, newNode)
+                        );
                         graphUpdated = true;
                         draggingNode = null;
                         return;
@@ -359,7 +379,9 @@
                         return;
                     }
 
-                    let newEdge = new Edge(draggingNode, releaseNode);
+                    let newEdge = colored
+                        ? Edge.coloredEdge(draggingNode, releaseNode)
+                        : new Edge(draggingNode, releaseNode);
 
                     if (!graph.containsEdge(newEdge)) {
                         graph.addEdge(newEdge);
@@ -386,7 +408,29 @@
             context.clearRect(0, 0, width, height);
 
             for (var edge of graph.edges) {
-                context.strokeStyle = edge.edgeColor;
+                if (edge.startColor == null || edge.endColor == null) {
+                    context.strokeStyle = edge.edgeColor;
+                } else {
+                    var grad = context.createLinearGradient(
+                        edge.start.position.x,
+                        edge.start.position.y,
+                        edge.end.position.x,
+                        edge.end.position.y
+                    );
+
+                    let startColor = Color.parseString(edge.startColor);
+
+                    let endColor = Color.parseString(edge.endColor);
+
+                    startColor.brighten(30);
+                    endColor.brighten(30);
+
+                    grad.addColorStop(0, startColor.toString());
+                    grad.addColorStop(1, endColor.toString());
+
+                    context.strokeStyle = grad;
+                }
+
                 context.beginPath();
                 context.moveTo(edge.start.position.x, edge.start.position.y);
                 context.lineTo(edge.end.position.x, edge.end.position.y);
@@ -483,7 +527,11 @@
 
             if (graphUpdated) {
                 message = "Click a node to begin";
-                resetGraph();
+
+                if (algorithmMode) {
+                    resetGraph();
+                }
+
                 graphUpdated = false;
             }
         }
