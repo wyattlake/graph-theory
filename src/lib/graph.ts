@@ -71,6 +71,37 @@ class Node {
         node.label = label;
         return node;
     }
+
+    recolor(nodeColor: string, edgeColor: string) {
+        this.color = nodeColor;
+        this.edgeColor = edgeColor;
+
+        for (var edge of this.incomingEdges) {
+            edge.endColor = this.edgeColor;
+        }
+
+        for (var edge of this.outgoingEdges) {
+            edge.startColor = this.edgeColor;
+        }
+    }
+
+    isValidColor(nodeColor: string) {
+        let result = true;
+
+        for (var edge of this.incomingEdges) {
+            if (edge.start.color == nodeColor) {
+                return false;
+            }
+        }
+
+        for (var edge of this.outgoingEdges) {
+            if (edge.end.color == nodeColor) {
+                return false;
+            }
+        }
+
+        return result;
+    }
 }
 
 class Edge {

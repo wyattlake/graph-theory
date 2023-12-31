@@ -11,10 +11,15 @@
         Color,
         blueEdge,
         blueNode,
+        grayEdge,
+        grayNode,
+        greenEdge,
+        greenNode,
         purpleNode,
         redEdge,
         redNode,
     } from "$lib/color";
+    import PaintIcon from "./icons/paintIcon.svelte";
 
     export let width: number,
         height: number,
@@ -35,6 +40,7 @@
         { id: 3, icon: DeleteIcon, text: "Delete", selectedColor: "#FF8181" },
         { id: 4, icon: RobotIcon, text: "Algorithm", selectedColor: "#FFB884" },
         { id: 5, icon: RobotIcon, text: "Algorithm", selectedColor: "#FFB884" },
+        { id: 6, icon: PaintIcon, text: "Color", selectedColor: "#FFB884" },
     ];
 
     let message = "Click a node to begin";
@@ -44,6 +50,10 @@
     let algorithmMode = false;
     let graphStates: GraphState[] = [];
     let algorithmIdx = 0;
+
+    let currentNodeColor: string = blueNode;
+    let currentEdgeColor: string = blueEdge;
+    let hidePalette = false;
 
     function DFS(node: Node) {
         let visited: Array<Node> = [];
@@ -85,6 +95,12 @@
         for (var edge of graph.edges) {
             edge.edgeColor = blueEdge;
             edge.arrowColor = blueNode;
+        }
+    }
+
+    function resetColoredGraph() {
+        for (var node of graph.nodes) {
+            node.recolor(grayNode, grayEdge);
         }
     }
 
@@ -134,6 +150,10 @@
         context.scale(pixelRatio, pixelRatio);
 
         function getCanvasPosition(event: MouseEvent) {
+            if (canvas == null) {
+                return null;
+            }
+
             const canvasBounds = canvas.getBoundingClientRect();
 
             const x = event.clientX - canvasBounds.left;
@@ -219,6 +239,26 @@
                         } else {
                             message = "Found root node";
                             graph.loadGraphState(graphStates[algorithmIdx]);
+                        }
+                    } else if (modeId == 6) {
+                        if (
+                            currentNodeColor != null &&
+                            currentEdgeColor != null
+                        ) {
+                            if (clickedNode.isValidColor(currentNodeColor)) {
+                                clickedNode.recolor(
+                                    currentNodeColor,
+                                    currentEdgeColor
+                                );
+                            }
+                        }
+
+                        hidePalette = true;
+                        for (var node of graph.nodes) {
+                            if (node.color == grayNode) {
+                                hidePalette = false;
+                                break;
+                            }
                         }
                     } else {
                         draggingNode = clickedNode;
@@ -532,6 +572,10 @@
                     resetGraph();
                 }
 
+                if (colored == true) {
+                    resetColoredGraph();
+                }
+
                 graphUpdated = false;
             }
         }
@@ -592,6 +636,7 @@
                         }
                     }}
                     class="textButton"
+                    style="margin-left:10px"
                 >
                     Next
                 </button>
@@ -602,7 +647,8 @@
                             graph.loadGraphState(graphStates[algorithmIdx]);
                         }
                     }}
-                    class="textButton">Previous</button
+                    class="textButton"
+                    style="margin-left:10px">Previous</button
                 >
                 <button
                     on:click={() => {
@@ -611,6 +657,7 @@
                         message = "Click a node to begin";
                     }}
                     class="textButton"
+                    style="margin-left:10px"
                 >
                     Reset
                 </button>
@@ -618,6 +665,42 @@
         {:else}
             <div class="canvasFooter"><p>{message}</p></div>
         {/if}
+    {:else if modeId == 6}
+        <div class="canvasFooter">
+            {#if hidePalette}
+                <button
+                    class="textButton"
+                    on:click={() => {
+                        resetColoredGraph();
+                        hidePalette = false;
+                    }}>Reset Graph</button
+                >
+            {:else}
+                <button
+                    class="paintColor red"
+                    on:click={() => {
+                        currentNodeColor = redNode;
+                        currentEdgeColor = redEdge;
+                    }}
+                ></button>
+                <button
+                    class="paintColor blue"
+                    style="margin-left: 15px"
+                    on:click={() => {
+                        currentNodeColor = blueNode;
+                        currentEdgeColor = blueEdge;
+                    }}
+                ></button>
+                <button
+                    class="paintColor green"
+                    style="margin-left: 15px"
+                    on:click={() => {
+                        currentNodeColor = greenNode;
+                        currentEdgeColor = greenEdge;
+                    }}
+                ></button>
+            {/if}
+        </div>
     {/if}
 </div>
 
@@ -670,12 +753,38 @@
     }
 
     .textButton {
-        margin-left: 10px;
         border: none;
         background-color: white;
         padding: 0;
         font-weight: 300;
         margin-top: 0px;
         font-size: 18px;
+    }
+
+    .paintColor {
+        border-radius: 100px;
+        border: none;
+        width: 24px;
+        height: 24px;
+    }
+
+    .red {
+        background-color: rgb(255, 70, 70);
+    }
+
+    .blue {
+        background-color: rgb(75, 130, 255);
+    }
+
+    .green {
+        background-color: rgb(139, 221, 79);
+    }
+
+    .orange {
+        background-color: rgb(250, 182, 72);
+    }
+
+    .purple {
+        background-color: rgb(186, 113, 255);
     }
 </style>

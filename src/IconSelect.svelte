@@ -16,7 +16,7 @@
         >
             <svelte:component
                 this={option.icon}
-                color={option.id == selectedId ? "#4B82FF" : "#d9d9d9"}
+                color={option.id == selectedId ? "#909090" : "#d9d9d9"}
                 size={30}
             />
         </button>

@@ -36,7 +36,7 @@
             directed={false}
             colored={true}
             graph={g1}
-            modes={[1, 2, 3]}
+            modes={[6, 1, 2, 3]}
         />
         <h1>Map Coloring</h1>
         <h1>Four Color Theorem</h1>
