@@ -21,6 +21,8 @@
         redNode,
     } from "$lib/color";
     import PaintIcon from "./icons/paintIcon.svelte";
+    import EditIcon from "./icons/editIcon.svelte";
+    import DotsIcon from "./icons/dotsIcon.svelte";
 
     export let width: number,
         height: number,
@@ -36,6 +38,12 @@
     export let modes: Array<number> = [1, 2, 3];
 
     export let edgeAlgorithmCallback: null | ((edge: Edge) => void) = null;
+    export let subgraphCallback: null | ((nodes: Node[]) => void) = null;
+
+    export let forceNodeColor: string | null = null;
+    export let forceEdgeColor: string | null = null;
+
+    let hasSubgraphs = true;
 
     let optionItems = [
         { id: 1, icon: CreateIcon, text: "Create", selectedColor: "#84AAFF" },
@@ -45,6 +53,13 @@
         { id: 5, icon: RobotIcon, text: "Algorithm", selectedColor: "#FFB884" },
         { id: 6, icon: PaintIcon, text: "Color", selectedColor: "#FFB884" },
         { id: 7, icon: RobotIcon, text: "Algorithm", selectedColor: "#FFB884" },
+        {
+            id: 8,
+            icon: MoveIcon,
+            text: "Edge Select",
+            selectedColor: "#FFB884",
+        },
+        { id: 9, icon: DotsIcon, text: "Group", selectedColor: "#FFB884" },
     ];
 
     let message = "Click a node to begin";
@@ -61,15 +76,15 @@
 
     let edgeDeleteMode = false;
 
-    function DFS(node: Node) {
+    function DFS(node: Node, color: boolean) {
         let visited: Array<Node> = [];
 
-        DFSUtil(node, visited);
+        DFSUtil(node, visited, color);
 
         return visited;
     }
 
-    function DFSUtil(node: Node, visited: Array<Node>) {
+    function DFSUtil(node: Node, visited: Array<Node>, color: boolean) {
         visited.push(node);
 
         let possibleEdges = graph.directed
@@ -84,11 +99,13 @@
             let otherNode = edge.start == node ? edge.end : edge.start;
 
             if (!visited.includes(otherNode)) {
-                edge.edgeColor = redEdge;
-                edge.arrowColor = redNode;
-                otherNode.color = purpleNode;
+                if (color) {
+                    edge.edgeColor = redEdge;
+                    edge.arrowColor = redNode;
+                    otherNode.color = purpleNode;
+                }
 
-                DFSUtil(otherNode, visited);
+                DFSUtil(otherNode, visited, color);
             }
         }
     }
@@ -126,7 +143,7 @@
     const nodeRadius = 8;
     const nodeBuffer = 2;
     const edgeWidth = 6;
-    const edgeBuffer = 10;
+    const edgeBuffer = 15;
 
     let draggingNode: Node | null = null;
 
@@ -202,7 +219,7 @@
                         graph.removeNode(clickedNode);
                         graphUpdated = true;
                     } else if (modeId == 4) {
-                        DFS(clickedNode);
+                        DFS(clickedNode, true);
                     } else if (modeId == 5) {
                         resetGraph();
 
@@ -213,7 +230,7 @@
                         function getRootNode(currentNode: Node, step: number) {
                             currentNode.color = redNode;
 
-                            let reachedNodes = DFS(currentNode);
+                            let reachedNodes = DFS(currentNode, true);
                             let remainingNodes = [];
 
                             for (var node of graph.nodes) {
@@ -267,6 +284,18 @@
                                 break;
                             }
                         }
+                    } else if (modeId == 9) {
+                        if (hasSubgraphs) {
+                            let visited = DFS(clickedNode, false);
+                            console.log(visited);
+                            if (visited.length == graph.nodes.length) {
+                                hasSubgraphs = false;
+                            } else {
+                                if (subgraphCallback != null) {
+                                    subgraphCallback(visited);
+                                }
+                            }
+                        }
                     } else {
                         draggingNode = clickedNode;
                     }
@@ -310,7 +339,7 @@
                                 graph.removeEdge(edge);
                                 graphUpdated = true;
                                 return;
-                            } else if (modeId == 7) {
+                            } else if (modeId == 8) {
                                 if (edgeAlgorithmCallback != null) {
                                     edgeAlgorithmCallback(edge);
                                 }
@@ -460,7 +489,9 @@
             context.clearRect(0, 0, width, height);
 
             for (var edge of graph.edges) {
-                if (edge.startColor == null || edge.endColor == null) {
+                if (forceEdgeColor != null) {
+                    context.strokeStyle = forceEdgeColor;
+                } else if (edge.startColor == null || edge.endColor == null) {
                     context.strokeStyle = edge.edgeColor;
                 } else {
                     var grad = context.createLinearGradient(
@@ -552,7 +583,11 @@
             }
 
             for (var node of graph.nodes) {
-                context.fillStyle = node.color;
+                if (forceNodeColor != null) {
+                    context.fillStyle = forceNodeColor;
+                } else {
+                    context.fillStyle = node.color;
+                }
 
                 context.beginPath();
                 context.arc(
@@ -715,16 +750,23 @@
         </div>
     {:else if modeId == 7}
         <div class="canvasFooter">
-            {#if edgeDeleteMode}
-                <p>Click an edge to begin</p>
+            <button
+                class="textButton"
+                on:click={() => {
+                    options = [optionItems[7], optionItems[8]];
+                    modeId = 8;
+                    edgeDeleteMode = true;
+                }}>Click here to finalize graph</button
+            >
+        </div>
+    {:else if modeId == 8}
+        <div class="canvasFooter"><p>Click an edge to remove it</p></div>
+    {:else if modeId == 9}
+        <div class="canvasFooter">
+            {#if !hasSubgraphs}
+                <p>Graph has no valid subgraphs</p>
             {:else}
-                <button
-                    class="textButton"
-                    on:click={() => {
-                        options = [optionItems[6]];
-                        edgeDeleteMode = true;
-                    }}>Click here to finalize graph</button
-                >
+                <p>Click a node to separate its subgraph</p>
             {/if}
         </div>
     {/if}
@@ -803,7 +845,7 @@
     }
 
     .green {
-        background-color: rgb(139, 221, 79);
+        background-color: rgb(111, 199, 46);
     }
 
     .orange {

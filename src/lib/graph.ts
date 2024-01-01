@@ -21,6 +21,8 @@ class Node {
     label: string;
     color: string;
     edgeColor: string | null;
+    id: number;
+    static currentId = 0;
 
     static fromPosition(position: Position, colored: boolean) {
         let node = new Node(position.x, position.y);
@@ -56,6 +58,8 @@ class Node {
         this.label = "";
         this.color = blueNode;
         this.edgeColor = null;
+        this.id = Node.currentId;
+        Node.currentId++;
     }
 
     static uncoloredNode(x: number, y: number) {
@@ -105,6 +109,12 @@ class Node {
         }
 
         return result;
+    }
+
+    clone() {
+        let newNode = new Node(this.position.x, this.position.y);
+
+        return newNode;
     }
 }
 
@@ -296,6 +306,129 @@ class Graph {
         }
 
         return new Position(min, max);
+    }
+
+    // Creates a duplicate graph with the same edges and nodes
+    clone() {
+        let clone = new Graph([], [], false);
+
+        let cloneMap: Map<Node, Node> = new Map<Node, Node>();
+
+        for (var node of this.nodes) {
+            let cloneNode = new Node(node.position.x, node.position.y);
+            cloneMap.set(node, cloneNode);
+            clone.addNode(cloneNode);
+        }
+
+        for (var edge of this.edges) {
+            let cloneEdge = new Edge(
+                cloneMap.get(edge.start)!,
+                cloneMap.get(edge.end)!
+            );
+            clone.edges.push(cloneEdge);
+        }
+
+        return clone;
+    }
+
+    findEquivalentEdge(newEdge: Edge) {
+        for (var edge of this.edges) {
+            if (
+                edge.start.position.x == newEdge.start.position.x &&
+                edge.start.position.y == newEdge.start.position.y &&
+                edge.end.position.x == newEdge.end.position.x &&
+                edge.end.position.y == newEdge.end.position.y
+            ) {
+                return edge;
+            }
+        }
+        return null;
+    }
+
+    createEdgeRemovedGraph(removeEdge: Edge) {
+        let cloneGraph = this.clone();
+        let newGraph = new Graph([], [], false);
+
+        let equivalentEdge = cloneGraph.findEquivalentEdge(removeEdge);
+
+        for (var node of cloneGraph.nodes) {
+            newGraph.addNode(node);
+        }
+
+        for (var edge of cloneGraph.edges) {
+            if (edge != equivalentEdge) {
+                newGraph.addEdge(edge);
+            }
+        }
+
+        return newGraph;
+    }
+
+    createCombinedEdgeGraph(combineEdge: Edge) {
+        let cloneGraph = this.clone();
+        let newGraph = new Graph([], [], false);
+
+        let equivalentEdge = cloneGraph.findEquivalentEdge(combineEdge);
+
+        equivalentEdge = equivalentEdge!;
+
+        console.log(cloneGraph);
+        console.log(equivalentEdge);
+
+        for (var node of cloneGraph.nodes) {
+            if (node != equivalentEdge.end) {
+                newGraph.addNode(node);
+            }
+        }
+
+        for (var edge of cloneGraph.edges) {
+            if (!edge.contains(equivalentEdge.end)) {
+                newGraph.addEdge(edge);
+            } else if (edge.start == equivalentEdge.end) {
+                let newEdge = new Edge(equivalentEdge.start, edge.end);
+                if (!newGraph.containsEdge(newEdge)) {
+                    newGraph.addEdge(newEdge);
+                }
+            } else {
+                let newEdge = new Edge(edge.start, equivalentEdge.start);
+                if (!newGraph.containsEdge(newEdge)) {
+                    newGraph.addEdge(newEdge);
+                }
+            }
+        }
+
+        return newGraph;
+    }
+
+    createSubgraphs(nodes: Node[]) {
+        let subgraph = new Graph([], [], false);
+        let remainingGraph = new Graph([], [], false);
+
+        for (var node of this.nodes) {
+            if (nodes.includes(node)) {
+                subgraph.addNode(node);
+            } else {
+                remainingGraph.addNode(node);
+            }
+        }
+
+        for (var edge of this.edges) {
+            let added = false;
+
+            for (var node of nodes) {
+                if (edge.contains(node)) {
+                    added = true;
+                    subgraph.addEdge(edge);
+                    break;
+                }
+            }
+
+            if (!added) {
+                remainingGraph.addEdge(edge);
+            }
+        }
+
+        return [subgraph, remainingGraph];
     }
 }
 
