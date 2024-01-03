@@ -393,14 +393,12 @@
         </p>
 
         <p>
-            Use the demo below to visualize an algorithm. When you click on a
+            Use the demo below to visualize the algorithm. When you click on a
             vertex that vertex will become the candidate for the root vertex and
             will be colored red. Any vertex which it can reach will be colored
             purple. By clicking the next button, the algorithm will pick the
-            next root candidate out of all vertices which are not reached. If
-            the graph is unilaterally connected, the root vertex will eventually
-            be found. Feel free to make your own graph and to try finding the
-            root with the algorithm.
+            next root candidate. Feel free to make your own graph and to try
+            finding the root with the algorithm.
         </p>
 
         <Canvas

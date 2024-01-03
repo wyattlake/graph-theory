@@ -43,6 +43,8 @@
     export let forceNodeColor: string | null = null;
     export let forceEdgeColor: string | null = null;
 
+    export let graphActive: boolean = true;
+
     let hasSubgraphs = true;
 
     let optionItems = [
@@ -671,7 +673,9 @@
         />
     </div>
 
-    {#if modeId == 5}
+    {#if !graphActive}
+        <div class="canvasFooter">Graph is reduced</div>
+    {:else if modeId == 5}
         {#if algorithmMode == true}
             <div class="canvasFooter">
                 <strong>Step {algorithmIdx + 1}/{graphStates.length}</strong>

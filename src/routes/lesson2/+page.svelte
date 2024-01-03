@@ -150,25 +150,168 @@
         }
     }
 
+    class Parenthesis {
+        open: boolean;
+        count: number;
+
+        constructor(open: boolean, count: number) {
+            this.open = open;
+            this.count = count;
+        }
+    }
+
     let displayGraphs: Array<Array<DisplayGraphInfo>> = [];
     let displayCharacters: Array<Array<String>> = [];
+    let displayParentheses: Array<Array<Parenthesis>> = [];
 
     let currentGraph = gd;
     let forceNodeColor = blueNode;
     let forceEdgeColor = blueEdge;
 
+    let graphActive = true;
+
     function updateCurrentGraph() {
-        for (var graphList of displayGraphs) {
-            for (var graphInfo of graphList) {
-                if (graphInfo.needsReduction) {
-                    currentGraph = graphInfo.graph;
-                    graphInfo.needsReduction = false;
-                    forceNodeColor = graphInfo.nodeColor;
-                    forceEdgeColor = graphInfo.edgeColor;
-                    return;
-                }
+        let updated = false;
+        for (var graphInfo of displayGraphs[displayGraphs.length - 1]) {
+            if (graphInfo.needsReduction) {
+                updated = true;
+                currentGraph = graphInfo.graph;
+                graphInfo.needsReduction = false;
+                forceNodeColor = graphInfo.nodeColor;
+                forceEdgeColor = graphInfo.edgeColor;
+                return;
             }
         }
+
+        if (!updated) {
+            currentGraph = gd;
+            forceNodeColor = grayNode;
+            forceEdgeColor = grayEdge;
+            graphActive = false;
+        }
+    }
+
+    let firstParens = true;
+
+    function addGraphs(
+        graph1: Graph,
+        graph1Node: string,
+        graph1Edge: string,
+        graph2: Graph,
+        graph2Node: string,
+        graph2Edge: string,
+        symbol: string
+    ) {
+        if (displayGraphs.length == 0) {
+            displayGraphs.push([
+                new DisplayGraphInfo(gd, blueNode, blueEdge, false),
+            ]);
+            displayCharacters.push([""]);
+            displayParentheses.push([new Parenthesis(true, 0)]);
+        }
+
+        let nextGraphRow = [];
+        let nextDisplayRow = [];
+        let nextParenthesesRow = [];
+
+        let rowHasReduction = false;
+
+        for (
+            let i = 0;
+            i < displayGraphs[displayGraphs.length - 1].length;
+            i++
+        ) {
+            let graphInfo = displayGraphs[displayGraphs.length - 1][i];
+
+            nextDisplayRow.push(
+                displayCharacters[displayCharacters.length - 1][i]
+            );
+
+            let lastRowParenthesis =
+                displayParentheses[displayParentheses.length - 1][i];
+            nextParenthesesRow.push(
+                new Parenthesis(
+                    lastRowParenthesis.open,
+                    lastRowParenthesis.count
+                )
+            );
+
+            if (graphInfo.graph == currentGraph) {
+                let lastParenthesis =
+                    nextParenthesesRow[nextParenthesesRow.length - 1];
+
+                if (!firstParens) {
+                    lastParenthesis.count++;
+                }
+
+                lastParenthesis.open = true;
+
+                let graph1Info = new DisplayGraphInfo(
+                    graph1,
+                    graph1Node,
+                    graph1Edge,
+                    true
+                );
+
+                if (
+                    graph1Info.graph.isDisconnectedGraph() ||
+                    graph1Info.graph.isCompleteGraph()
+                ) {
+                    graph1Info.needsReduction = false;
+                    graph1Info.edgeColor = grayEdge;
+                    graph1Info.nodeColor = grayNode;
+                } else if (rowHasReduction) {
+                    graph1Info.needsReduction = false;
+                } else {
+                    rowHasReduction = true;
+                }
+
+                nextGraphRow.push(graph1Info);
+
+                nextDisplayRow.push(symbol);
+                if (!firstParens) {
+                    nextParenthesesRow.push(new Parenthesis(false, 1));
+                } else {
+                    nextParenthesesRow.push(new Parenthesis(false, 0));
+                }
+
+                let graph2Info = new DisplayGraphInfo(
+                    graph2,
+                    graph2Node,
+                    graph2Edge,
+                    true
+                );
+
+                if (
+                    graph2Info.graph.isDisconnectedGraph() ||
+                    graph2Info.graph.isCompleteGraph()
+                ) {
+                    graph2Info.needsReduction = false;
+                    graph2Info.edgeColor = grayEdge;
+                    graph2Info.nodeColor = grayNode;
+                } else {
+                    rowHasReduction = true;
+                }
+
+                nextGraphRow.push(graph2Info);
+
+                if (firstParens) {
+                    firstParens = false;
+                }
+            } else {
+                nextGraphRow.push(graphInfo);
+            }
+        }
+
+        displayGraphs.push(nextGraphRow);
+        displayCharacters.push(nextDisplayRow);
+        displayParentheses.push(nextParenthesesRow);
+
+        displayCharacters[displayCharacters.length - 1][0] = "=";
+
+        displayGraphs = displayGraphs;
+
+        updateCurrentGraph();
     }
 </script>
 
@@ -578,121 +721,34 @@
             modes={[7, 1, 2, 3]}
             {forceNodeColor}
             {forceEdgeColor}
+            {graphActive}
             edgeAlgorithmCallback={(edge) => {
-                if (displayGraphs.length == 0) {
-                    displayGraphs.push([
-                        new DisplayGraphInfo(gd, blueNode, blueEdge, false),
-                    ]);
-                    displayCharacters.push([""]);
-                }
-
-                let nextGraphRow = [];
-                let nextDisplayRow = [];
-
-                for (
-                    let i = 0;
-                    i < displayGraphs[displayGraphs.length - 1].length;
-                    i++
-                ) {
-                    let graphInfo = displayGraphs[displayGraphs.length - 1][i];
-
-                    nextDisplayRow.push(
-                        displayCharacters[displayCharacters.length - 1][i]
+                if (graphActive) {
+                    addGraphs(
+                        currentGraph.createEdgeRemovedGraph(edge),
+                        purpleNode,
+                        purpleEdge,
+                        currentGraph.createCombinedEdgeGraph(edge),
+                        greenNode,
+                        greenEdge,
+                        "-"
                     );
-
-                    if (graphInfo.graph == currentGraph) {
-                        nextGraphRow.push(
-                            new DisplayGraphInfo(
-                                currentGraph.createEdgeRemovedGraph(edge),
-                                purpleNode,
-                                purpleEdge,
-                                true
-                            )
-                        );
-
-                        nextDisplayRow.push("-");
-
-                        let combinedGraph =
-                            currentGraph.createCombinedEdgeGraph(edge);
-
-                        nextGraphRow.push(
-                            new DisplayGraphInfo(
-                                combinedGraph,
-                                greenNode,
-                                greenEdge,
-                                true
-                            )
-                        );
-                    } else {
-                        nextGraphRow.push(graphInfo);
-                    }
                 }
-
-                displayGraphs.push(nextGraphRow);
-                displayCharacters.push(nextDisplayRow);
-
-                displayGraphs = displayGraphs;
-
-                updateCurrentGraph();
             }}
             subgraphCallback={(nodes) => {
-                if (displayGraphs.length == 0) {
-                    displayGraphs.push([
-                        new DisplayGraphInfo(gd, blueNode, blueEdge, false),
-                    ]);
-                    displayCharacters.push([""]);
-                }
+                if (graphActive) {
+                    let subgraphs = currentGraph.createSubgraphs(nodes);
 
-                let subgraphs = currentGraph.createSubgraphs(nodes);
-
-                let subgraph = subgraphs[0];
-                let remainingGraph = subgraphs[1];
-
-                let nextGraphRow = [];
-                let nextDisplayRow = [];
-
-                for (
-                    let i = 0;
-                    i < displayGraphs[displayGraphs.length - 1].length;
-                    i++
-                ) {
-                    let graphInfo = displayGraphs[displayGraphs.length - 1][i];
-
-                    nextDisplayRow.push(
-                        displayCharacters[displayCharacters.length - 1][i]
+                    addGraphs(
+                        subgraphs[0],
+                        redNode,
+                        redEdge,
+                        subgraphs[1],
+                        orangeNode,
+                        orangeEdge,
+                        "×"
                     );
-
-                    if (graphInfo.graph == currentGraph) {
-                        nextGraphRow.push(
-                            new DisplayGraphInfo(
-                                subgraph,
-                                redNode,
-                                redEdge,
-                                true
-                            )
-                        );
-
-                        nextDisplayRow.push("*");
-
-                        nextGraphRow.push(
-                            new DisplayGraphInfo(
-                                remainingGraph,
-                                orangeNode,
-                                orangeEdge,
-                                true
-                            )
-                        );
-                    } else {
-                        nextGraphRow.push(graphInfo);
-                    }
                 }
-
-                displayGraphs.push(nextGraphRow);
-                displayCharacters.push(nextDisplayRow);
-
-                displayGraphs = displayGraphs;
-
-                updateCurrentGraph();
             }}
         />
 
@@ -702,13 +758,26 @@
                     {#if displayCharacters[i][j] != ""}
                         <p>{displayCharacters[i][j]}</p>
                     {/if}
+
+                    {#if displayParentheses[i][j].count != 0 && displayParentheses[i][j].open}
+                        {#each Array(displayParentheses[i][j].count) as _}
+                            <p class="parentheses">(</p>
+                        {/each}
+                    {/if}
+
                     <GraphDisplay
                         height={350}
                         graph={graphInfo.graph}
-                        scale={0.4}
+                        scale={0.3}
                         edgeColor={graphInfo.edgeColor}
                         nodeColor={graphInfo.nodeColor}
                     />
+
+                    {#if displayParentheses[i][j].count != 0 && !displayParentheses[i][j].open}
+                        {#each Array(displayParentheses[i][j].count) as _}
+                            <p class="parentheses">)</p>
+                        {/each}
+                    {/if}
                 {/each}
             </div>
         {/each}
@@ -717,4 +786,9 @@
 
 <style>
     @import "/src/article.css";
+
+    .parentheses {
+        font-size: 100px;
+        font-weight: 100;
+    }
 </style>

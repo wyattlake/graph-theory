@@ -253,6 +253,7 @@ class Graph {
     }
 
     containsEdge(edge: Edge) {
+        console.log("hi");
         for (var currentEdge of this.edges) {
             if (
                 currentEdge.contains(edge.start) &&
@@ -372,9 +373,6 @@ class Graph {
 
         equivalentEdge = equivalentEdge!;
 
-        console.log(cloneGraph);
-        console.log(equivalentEdge);
-
         for (var node of cloneGraph.nodes) {
             if (node != equivalentEdge.end) {
                 newGraph.addNode(node);
@@ -383,15 +381,23 @@ class Graph {
 
         for (var edge of cloneGraph.edges) {
             if (!edge.contains(equivalentEdge.end)) {
-                newGraph.addEdge(edge);
+                if (!newGraph.containsEdge(edge)) {
+                    newGraph.addEdge(edge);
+                }
             } else if (edge.start == equivalentEdge.end) {
                 let newEdge = new Edge(equivalentEdge.start, edge.end);
-                if (!newGraph.containsEdge(newEdge)) {
+                if (
+                    !newGraph.containsEdge(newEdge) &&
+                    newEdge.start != newEdge.end
+                ) {
                     newGraph.addEdge(newEdge);
                 }
             } else {
                 let newEdge = new Edge(edge.start, equivalentEdge.start);
-                if (!newGraph.containsEdge(newEdge)) {
+                if (
+                    !newGraph.containsEdge(newEdge) &&
+                    newEdge.start != newEdge.end
+                ) {
                     newGraph.addEdge(newEdge);
                 }
             }
@@ -429,6 +435,15 @@ class Graph {
         }
 
         return [subgraph, remainingGraph];
+    }
+
+    isDisconnectedGraph() {
+        return this.edges.length == 0;
+    }
+
+    isCompleteGraph() {
+        let nodeCount = this.nodes.length;
+        return this.edges.length == (nodeCount * (nodeCount - 1)) / 2;
     }
 }
 
