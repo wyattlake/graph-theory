@@ -253,7 +253,6 @@ class Graph {
     }
 
     containsEdge(edge: Edge) {
-        console.log("hi");
         for (var currentEdge of this.edges) {
             if (
                 currentEdge.contains(edge.start) &&
@@ -444,6 +443,24 @@ class Graph {
     isCompleteGraph() {
         let nodeCount = this.nodes.length;
         return this.edges.length == (nodeCount * (nodeCount - 1)) / 2;
+    }
+
+    getChromaticPolynomial() {
+        if (this.isDisconnectedGraph()) {
+            if (this.nodes.length > 1) {
+                return `x<span class=\"sup\">` + this.nodes.length + `</span>`;
+            } else {
+                return "x";
+            }
+        } else if (this.isCompleteGraph()) {
+            let result = "x";
+            for (let i = 1; i < this.nodes.length; i++) {
+                result += "(x - " + i + ")";
+            }
+            return result;
+        } else {
+            return "";
+        }
     }
 }
 

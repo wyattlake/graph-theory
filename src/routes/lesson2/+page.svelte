@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { goto } from "$app/navigation";
     import {
         blueEdge,
         blueNode,
@@ -16,6 +17,7 @@
     import { Edge, Graph, Node } from "$lib/graph";
     import Canvas from "../../Canvas.svelte";
     import GraphDisplay from "../../GraphDisplay.svelte";
+    import Navbar from "../../Navbar.svelte";
 
     let n1 = Node.coloredNode(120, 80, grayNode, grayEdge);
     let n2 = Node.coloredNode(520, 265, grayNode, grayEdge);
@@ -184,6 +186,38 @@
         }
 
         if (!updated) {
+            chromaticPolynomial = "P(G, x)";
+            for (
+                let i = 0;
+                i < displayGraphs[displayGraphs.length - 1].length;
+                i++
+            ) {
+                let nextCharacter =
+                    displayCharacters[displayCharacters.length - 1][i];
+                chromaticPolynomial +=
+                    nextCharacter == "*" ? " · " : " " + nextCharacter + " ";
+
+                let parenthesis =
+                    displayParentheses[displayParentheses.length - 1][i];
+
+                if (parenthesis.open) {
+                    for (let i = 0; i < parenthesis.count; i++) {
+                        chromaticPolynomial += "(";
+                    }
+                }
+
+                chromaticPolynomial +=
+                    displayGraphs[displayGraphs.length - 1][
+                        i
+                    ].graph.getChromaticPolynomial();
+
+                if (!parenthesis.open) {
+                    for (let i = 0; i < parenthesis.count; i++) {
+                        chromaticPolynomial += ")";
+                    }
+                }
+            }
+
             currentGraph = gd;
             forceNodeColor = grayNode;
             forceEdgeColor = grayEdge;
@@ -192,6 +226,8 @@
     }
 
     let firstParens = true;
+
+    let chromaticPolynomial = "";
 
     function addGraphs(
         graph1: Graph,
@@ -240,8 +276,14 @@
                 let lastParenthesis =
                     nextParenthesesRow[nextParenthesesRow.length - 1];
 
+                let extraParentheses = 0;
                 if (!firstParens) {
-                    lastParenthesis.count++;
+                    if (lastParenthesis.open || lastParenthesis.count == 0) {
+                        lastParenthesis.open = true;
+                        lastParenthesis.count++;
+                    } else {
+                        extraParentheses = lastParenthesis.count;
+                    }
                 }
 
                 lastParenthesis.open = true;
@@ -270,7 +312,9 @@
 
                 nextDisplayRow.push(symbol);
                 if (!firstParens) {
-                    nextParenthesesRow.push(new Parenthesis(false, 1));
+                    nextParenthesesRow.push(
+                        new Parenthesis(false, 1 + extraParentheses)
+                    );
                 } else {
                     nextParenthesesRow.push(new Parenthesis(false, 0));
                 }
@@ -315,8 +359,10 @@
     }
 </script>
 
+<Navbar></Navbar>
+
 <svelte.head>
-    <title>Lesson 2</title>
+    <title>Graph Coloring</title>
 </svelte.head>
 
 <div class="body">
@@ -326,9 +372,14 @@
             In graph theory, <strong>coloring</strong> a graph refers to assigning
             a label (often represented by a color) to each vertex in a graph. A color
             cannot be used for a vertex if that vertex is adjacent to another vertex
-            with the desired color.
+            with the same color.
         </p>
-        <p>Try to color all of the vertices in the graph below:</p>
+        <p>
+            Try to color all of the vertices in the graph below. You can click
+            on a color in the color palette to select that color. Once you do
+            so, clicking on a node in the graph will assign your chosen color to
+            that node.
+        </p>
         <Canvas
             width={700}
             height={350}
@@ -341,11 +392,11 @@
         <p>
             One famous special case of graph coloring is the coloring of
             <strong>maps</strong>. Maps with separate regions can be represented
-            by graphs where each vertex is a region in the map and bordering
+            by graphs where each vertex is a region in the map, and bordering
             regions have an edge between them.
         </p>
         <p>
-            For example, we can represent this map of new England with the graph
+            For example, we can represent this map of New England with the graph
             below:
         </p>
         <img src="newEngland.png" alt="newEngland" width="500" />
@@ -369,8 +420,8 @@
                 in 1852 and remained unproven for over a century.
             </p>
             <p>
-                In 1977, Appel and Hakken provided a computer assisted proof of
-                the Four Color Theorem which programmatically checked nearly
+                In 1977, Appel and Hakken provided a computer-assisted proof of
+                the Four Color Theorem, which programmatically checked nearly
                 2000 special cases of maps. This proof was highly controversial
                 at the time for its use of computers instead of mathematical
                 analysis.
@@ -383,13 +434,13 @@
         <h1>Chromatic Numbers and Functions</h1>
         <p>
             The <strong>chromatic number</strong> of a graph is the minimum number
-            of colors needed to color that graph. We use to denote the chromatic
+            of colors needed to color that graph. We use &chi;(G) to denote the chromatic
             number of the graph G.
         </p>
         <p>
-            The <strong>chromatic function</strong> of a graph is a function which
-            takes in a graph G and any number x then outputs the number of ways to
-            color G with at most x colors. This function is often denoted as P(G,
+            The <strong>chromatic function</strong> of a graph is a function that
+            takes in a graph G and any number x, then outputs the number of ways
+            to color G with at most x colors. This function is often denoted as P(G,
             x).
         </p>
         <p>
@@ -418,17 +469,17 @@
             possible ways to color the graph one vertex at a time.
         </p>
         <p>
-            For the first vertex, no colors have been used yet so we have x
+            For the first vertex, no colors have been used yet, so we have x
             possible ways to color that vertex. For the second vertex, although
             we have already used one color for the first vertex, that vertex is
             not adjacent to the second, so we still have x possible colors.
         </p>
         <p>
-            So for each of the x possible colors for the first vertex, we've
+            So, for each of the x possible colors for the first vertex, we've
             determined there are another x possible colors for the second. Thus,
             we can multiply the x colors for the first vertex by the x colors
             for the second to get a total of x<span class="sup">2</span> possible
-            colorings of the first two vertices
+            colorings of the first two vertices.
         </p>
         <p>
             Moving forward, we will continue to use this technique of finding
@@ -447,7 +498,7 @@
             x<span class="sup">n</span>.
         </p>
         <p>
-            Now let's try a more complicated example. Consider the following
+            Now, let's try a more complicated example. Consider the following
             graph G<span class="sub">2</span>:
         </p>
         <Canvas
@@ -468,7 +519,7 @@
         <p>
             In the first case where b and d have the same color, there are x - 1
             choices for that shared color because one color is already taken by
-            a. Now if we consider c, c touches b and d which means it only
+            a. Now if we consider c, c touches b and d, which means it only
             touches one color. This means that c also has x - 1 choices for
             colors.
         </p>
@@ -478,8 +529,8 @@
             1)<span class="sup">2</span>.
         </p>
         <p>
-            Now onto the case where b and d have different colors. There are x -
-            1 choices for b and x - 2 choices for d (because it must have a
+            Now, onto the case where b and d have different colors. There are x
+            - 1 choices for b and x - 2 choices for d (because it must have a
             different color than b). Finally, d has x - 2 color options because
             it is adjacent to b and d. This gives us the total chromatic
             function of x(x - 1)(x - 2)<span class="sup">2</span> for this case.
@@ -532,12 +583,12 @@
                 a<span class="sub">0</span>x<span class="sup">0</span>
             </p>
             <p>
-                These functions appear in many branches of math and science and
+                These functions appear in many branches of math and science, and
                 their behavior is very well studied.
             </p>
         </div>
         <p>
-            <strong>Theorem:</strong> For any graph G the function P(G, x), which
+            <strong>Theorem:</strong> For any graph G, the function P(G, x), which
             returns the number of ways to color G with x colors, is a polynomial.
         </p>
         <p>
@@ -550,9 +601,9 @@
         <p>
             <strong>Reduction 1:</strong> Before diving into creating a
             reduction to find the chromatic function of any graph, let's try a
-            simpler case where we have a graph G which has two
+            simpler case where we have a graph G, which has two
             <strong>subgraphs</strong> without any edges between them. A subgraph
-            is a graph which is entirely composed of edges and vertices from another
+            is a graph that is entirely composed of edges and vertices from another
             graph. Below is an example of a graph with two disconnected subgraphs.
         </p>
         <Canvas
@@ -567,7 +618,7 @@
             second S<span class="sub">2</span>. The number of colorings for S<span
                 class="sub">1</span
             >
-            given x colors is P(S<span class="sub">1</span>, x) and P(S<span
+            given x colors is P(S<span class="sub">1</span>, x), and P(S<span
                 class="sub">2</span
             >, x) is the equivalent for S<span class="sub">2</span>. We want to
             find a chromatic function for G using these functions.
@@ -579,16 +630,16 @@
                 class="sub">2</span
             >
             because the subgraphs are disconnected and their colorings do not affect
-            each other. Thus, we have P(S<span class="sub">1</span>, x)P(S<span
+            each other. Thus, we have P(S<span class="sub">1</span>, x) · P(S<span
                 class="sub">2</span
-            >, x) colorings for G. With this formula we've reduced the problem
+            >, x) colorings for G. With this formula, we've reduced the problem
             of finding a chromatic function for G into the smaller steps of
             finding chromatic functions for S<span class="sub">1</span> and S<span
                 class="sub">2</span
-            >
+            >.
         </p>
         <p>
-            <strong>Reduction 2:</strong> Now we will try and find a more general
+            <strong>Reduction 2:</strong> Now we will try to find a more general
             reduction formula for graphs. We will start by looking at the abstract
             case of two vertices.
         </p>
@@ -606,7 +657,7 @@
             look like in a graph:
         </p>
         <li>
-            For non adjacent vertices, we simply don't have an edge between
+            For non-adjacent vertices, we simply don't have an edge between
             them.
         </li>
         <li>
@@ -618,7 +669,7 @@
             this is equivalent to having an edge between them.
         </li>
         <p>
-            So now we know that the non adjacent case's function is equivalent
+            So now we know that the non-adjacent case's function is equivalent
             to the sum of the adjacent and combined cases:
         </p>
         <div class="graphEquation">
@@ -647,25 +698,25 @@
             />
         </div>
         <p>
-            Now our goal is to find ways to make the problem of finding the
+            Now, our goal is to find ways to make the problem of finding the
             chromatic function of a graph simpler. So, we should decide which of
             these cases simplify the problem instead of making it more complex.
         </p>
         <p>
-            Note that having less edges, like in the first case, makes the
-            problem simpler, because we have already found formulas for
-            determing the chromatic function of disconnected graphs and
+            Note that having fewer edges, like in the first case, makes the
+            problem simpler because we have already found formulas for
+            determining the chromatic function of disconnected graphs and
             disconnected subgraphs.
         </p>
         <p>
             Combining vertices, like in the second case, also makes the problem
-            simpler because it means the graph has less vertices and edges
+            simpler because it means the graph has fewer vertices and edges
             overall.
         </p>
         <p>
-            Now because these two cases are simpler than the case where the
+            Now, because these two cases are simpler than the case where the
             edges are adjacent, we can re-arrange our original formula to
-            express the most complicated case in terms of the simpler ones
+            express the most complicated case in terms of the simpler ones.
         </p>
         <div class="graphEquation">
             <GraphDisplay
@@ -701,10 +752,10 @@
         </p>
         <p>
             If you repeat this process of selecting edges within a graph and
-            then computing the chromatic functions of the combined and non
-            adjacent alternate versions of the graph, you will eventually arrive
-            at graphs which you know the chromatic function of. From there you
-            can build up a chromatic function for the entire graph.
+            then computing the chromatic functions of the combined and
+            non-adjacent alternate versions of the graph, you will eventually
+            arrive at graphs with known chromatic functions. From there, you can
+            build a chromatic function for the entire graph.
         </p>
         <p>
             Below is an interactive graph where you can watch this algorithm in
@@ -712,6 +763,23 @@
             starting. When you are ready to start, click on the robot to enter
             the algorithm mode and click on the prompt at the bottom to finalize
             your graph.
+        </p>
+        <p>
+            Once your graph is finalized, you will be able to click on an edge
+            to reduce the graph from that edge. Additionally, you can switch to
+            the subgraph mode and click on a node to reduce the graph by
+            removing the subgraph that the node is a part of.
+        </p>
+        <p>
+            After each reduction, an equation will appear below which expresses
+            the original graph's chromatic function in terms of the reduced
+            graphs. If a reduced graph has a known chromatic function, that
+            graph will be grayed out.
+        </p>
+        <p>
+            Once the graph has been reduced entirely to graphs with known
+            chromatic functions, an overall chromatic function for the graph
+            will appear.
         </p>
         <Canvas
             width={700}
@@ -746,41 +814,83 @@
                         subgraphs[1],
                         orangeNode,
                         orangeEdge,
-                        "×"
+                        "*"
                     );
                 }
             }}
         />
+        <div class="equationSection">
+            {#each displayGraphs as graphList, i}
+                <div class="graphEquation">
+                    {#each graphList as graphInfo, j}
+                        {#if displayCharacters[i][j] != ""}
+                            <p>{displayCharacters[i][j]}</p>
+                        {/if}
 
-        {#each displayGraphs as graphList, i}
-            <div class="graphEquation">
-                {#each graphList as graphInfo, j}
-                    {#if displayCharacters[i][j] != ""}
-                        <p>{displayCharacters[i][j]}</p>
-                    {/if}
+                        {#if displayParentheses[i][j].count != 0 && displayParentheses[i][j].open}
+                            {#each Array(displayParentheses[i][j].count) as _}
+                                <p class="parentheses">(</p>
+                            {/each}
+                        {/if}
 
-                    {#if displayParentheses[i][j].count != 0 && displayParentheses[i][j].open}
-                        {#each Array(displayParentheses[i][j].count) as _}
-                            <p class="parentheses">(</p>
-                        {/each}
-                    {/if}
+                        <GraphDisplay
+                            height={350}
+                            graph={graphInfo.graph}
+                            scale={0.2}
+                            edgeColor={graphInfo.edgeColor}
+                            nodeColor={graphInfo.nodeColor}
+                        />
 
-                    <GraphDisplay
-                        height={350}
-                        graph={graphInfo.graph}
-                        scale={0.3}
-                        edgeColor={graphInfo.edgeColor}
-                        nodeColor={graphInfo.nodeColor}
-                    />
+                        {#if displayParentheses[i][j].count != 0 && !displayParentheses[i][j].open}
+                            {#each Array(displayParentheses[i][j].count) as _}
+                                <p class="parentheses">)</p>
+                            {/each}
+                        {/if}
+                    {/each}
+                </div>
+            {/each}
+        </div>
 
-                    {#if displayParentheses[i][j].count != 0 && !displayParentheses[i][j].open}
-                        {#each Array(displayParentheses[i][j].count) as _}
-                            <p class="parentheses">)</p>
-                        {/each}
-                    {/if}
-                {/each}
-            </div>
-        {/each}
+        {#if displayGraphs.length != 0}
+            {#if chromaticPolynomial != ""}
+                <p class="finalEquation">{@html chromaticPolynomial}</p>
+            {/if}
+            <button
+                class="mainButton"
+                on:click={() => {
+                    displayGraphs = [];
+                    graphActive = true;
+                    currentGraph = gd;
+                    chromaticPolynomial = "";
+                    forceNodeColor = blueNode;
+                    forceEdgeColor = blueEdge;
+                }}>Reset</button
+            >
+        {/if}
+        <p>
+            Note that our final chromatic function is composed entirely of
+            polynomials multiplied with and subtracted from one another.
+            Polynomials are closed under these operations, which means that the
+            subtraction or multiplication of any two polynomials will always
+            result in a polynomial. Thus, all chromatic functions are
+            polynomials.
+        </p>
+        <div class="background">
+            <p>
+                <strong>Challenge: </strong>See if you can prove that the
+                problem of finding the chromatic polynomial for any graph can be
+                reduced to finding the chromatic polynomials for disconnected
+                nodes. You should only need the edge removal reduction for this
+                proof.
+            </p>
+        </div>
+
+        <button
+            class="nextLesson"
+            on:click={() => {
+                goto("/lesson3");
+            }}>Next Lesson</button
+        >
     </div>
 </div>
 
@@ -788,7 +898,11 @@
     @import "/src/article.css";
 
     .parentheses {
-        font-size: 100px;
+        font-size: 80px;
         font-weight: 100;
+    }
+
+    .mainButton {
+        margin-bottom: 50px;
     }
 </style>

@@ -62,9 +62,21 @@
             selectedColor: "#FFB884",
         },
         { id: 9, icon: DotsIcon, text: "Group", selectedColor: "#FFB884" },
+        {
+            id: 10,
+            icon: RobotIcon,
+            text: "Algorithm",
+            selectedColor: "#FFB884",
+        },
+        {
+            id: 11,
+            icon: RobotIcon,
+            text: "Algorithm",
+            selectedColor: "#FFB884",
+        },
     ];
 
-    let message = "Click a node to begin";
+    let message = "Click a vertex to begin";
 
     let graphUpdated = false;
 
@@ -289,7 +301,6 @@
                     } else if (modeId == 9) {
                         if (hasSubgraphs) {
                             let visited = DFS(clickedNode, false);
-                            console.log(visited);
                             if (visited.length == graph.nodes.length) {
                                 hasSubgraphs = false;
                             } else {
@@ -297,6 +308,127 @@
                                     subgraphCallback(visited);
                                 }
                             }
+                        }
+                    } else if (modeId == 10) {
+                        resetGraph();
+
+                        algorithmMode = true;
+                        algorithmIdx = 0;
+                        graphStates = [];
+
+                        function DFS2(node: Node, color: boolean) {
+                            let visited: Array<Node> = [];
+
+                            node.color = redNode;
+                            graphStates.push(graph.saveGraphState());
+
+                            DFSUtil2(node, visited, color);
+
+                            return visited;
+                        }
+
+                        function DFSUtil2(
+                            node: Node,
+                            visited: Array<Node>,
+                            color: boolean
+                        ) {
+                            visited.push(node);
+
+                            let possibleEdges = graph.directed
+                                ? node.outgoingEdges
+                                : Array.prototype.concat(
+                                      node.incomingEdges,
+                                      node.outgoingEdges
+                                  );
+
+                            for (var edge of possibleEdges) {
+                                if (visited.length == graph.nodes.length) {
+                                    return;
+                                }
+
+                                let otherNode =
+                                    edge.start == node ? edge.end : edge.start;
+
+                                if (!visited.includes(otherNode)) {
+                                    if (color) {
+                                        edge.edgeColor = redEdge;
+                                        edge.arrowColor = redNode;
+                                        otherNode.color = purpleNode;
+                                        graphStates.push(
+                                            graph.saveGraphState()
+                                        );
+                                    }
+
+                                    DFSUtil2(otherNode, visited, color);
+                                }
+                            }
+                        }
+
+                        let visited = DFS2(clickedNode, true);
+                        if (visited.length != graph.nodes.length) {
+                            message = "Not Connected";
+                            graph.loadGraphState(graphStates[algorithmIdx]);
+                        } else {
+                            message = "Connected";
+                            graph.loadGraphState(graphStates[algorithmIdx]);
+                        }
+                    } else if (modeId == 11) {
+                        resetGraph();
+
+                        algorithmMode = true;
+                        algorithmIdx = 0;
+                        graphStates = [];
+
+                        function BFS(node: Node) {
+                            let visited: Array<Node> = [];
+
+                            node.color = redNode;
+                            graphStates.push(graph.saveGraphState());
+
+                            let queue: Array<Node> = [];
+
+                            visited.push(node);
+                            queue.push(node);
+
+                            while (queue.length > 0) {
+                                let currentNode = queue[0];
+                                queue.shift();
+
+                                let possibleEdges = graph.directed
+                                    ? currentNode.outgoingEdges
+                                    : Array.prototype.concat(
+                                          currentNode.incomingEdges,
+                                          currentNode.outgoingEdges
+                                      );
+
+                                for (var edge of possibleEdges) {
+                                    let otherNode =
+                                        edge.start == currentNode
+                                            ? edge.end
+                                            : edge.start;
+                                    if (!visited.includes(otherNode)) {
+                                        visited.push(otherNode);
+                                        queue.push(otherNode);
+                                        edge.edgeColor = redEdge;
+                                        edge.arrowColor = redNode;
+                                        otherNode.color = purpleNode;
+                                        graphStates.push(
+                                            graph.saveGraphState()
+                                        );
+                                    }
+                                }
+                            }
+
+                            return visited;
+                        }
+
+                        let visited = BFS(clickedNode);
+                        if (visited.length != graph.nodes.length) {
+                            message = "Not Connected";
+                            graph.loadGraphState(graphStates[algorithmIdx]);
+                        } else {
+                            message = "Connected";
+                            graph.loadGraphState(graphStates[algorithmIdx]);
                         }
                     } else {
                         draggingNode = clickedNode;
@@ -342,6 +474,7 @@
                                 graphUpdated = true;
                                 return;
                             } else if (modeId == 8) {
+                                hasSubgraphs = true;
                                 if (edgeAlgorithmCallback != null) {
                                     edgeAlgorithmCallback(edge);
                                 }
@@ -615,10 +748,12 @@
             }
 
             if (graphUpdated) {
-                message = "Click a node to begin";
+                message = "Click a vertex to begin";
 
                 if (algorithmMode) {
                     resetGraph();
+                    algorithmMode = false;
+                    graphStates = [];
                 }
 
                 if (colored == true) {
@@ -705,7 +840,7 @@
                     on:click={() => {
                         algorithmMode = false;
                         resetGraph();
-                        message = "Click a node to begin";
+                        message = "Click a vertex to begin";
                     }}
                     class="textButton"
                     style="margin-left:10px"
@@ -767,12 +902,56 @@
         <div class="canvasFooter"><p>Click an edge to remove it</p></div>
     {:else if modeId == 9}
         <div class="canvasFooter">
-            {#if !hasSubgraphs}
+            {#if hasSubgraphs == false}
                 <p>Graph has no valid subgraphs</p>
             {:else}
-                <p>Click a node to separate its subgraph</p>
+                <p>Click a vertex to separate its subgraph</p>
             {/if}
         </div>
+    {:else if modeId == 10 || modeId == 11}
+        {#if algorithmMode == true}
+            <div class="canvasFooter">
+                <strong>{message}</strong>
+                <strong style="margin-left:10px"
+                    >Step {algorithmIdx + 1}/{graphStates.length}</strong
+                >
+                <button
+                    on:click={() => {
+                        if (algorithmIdx + 1 < graphStates.length) {
+                            algorithmIdx++;
+                            graph.loadGraphState(graphStates[algorithmIdx]);
+                        }
+                    }}
+                    class="textButton"
+                    style="margin-left:10px"
+                >
+                    Next
+                </button>
+                <button
+                    on:click={() => {
+                        if (algorithmIdx > 0) {
+                            algorithmIdx--;
+                            graph.loadGraphState(graphStates[algorithmIdx]);
+                        }
+                    }}
+                    class="textButton"
+                    style="margin-left:10px">Previous</button
+                >
+                <button
+                    on:click={() => {
+                        algorithmMode = false;
+                        resetGraph();
+                        message = "Click a vertex to begin";
+                    }}
+                    class="textButton"
+                    style="margin-left:10px"
+                >
+                    Reset
+                </button>
+            </div>
+        {:else}
+            <div class="canvasFooter"><p>{message}</p></div>
+        {/if}
     {/if}
 </div>
 

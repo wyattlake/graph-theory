@@ -2,6 +2,7 @@
     import { goto } from "$app/navigation";
     import { Edge, Graph, Node } from "$lib/graph";
     import Canvas from "../../Canvas.svelte";
+    import Navbar from "../../Navbar.svelte";
 
     let n1 = new Node(100, 100);
     let n2 = new Node(224, 265);
@@ -89,16 +90,23 @@
 </script>
 
 <svelte.head>
-    <title>Lesson 1</title>
+    <title>Introduction</title>
 </svelte.head>
+
+<Navbar></Navbar>
 
 <div class="body">
     <div class="mainArticle">
         <h1>What is a Graph?</h1>
         <p>
             Graphs are composed of <strong>edges</strong> and
-            <strong>vertices</strong>. Vertices are individual points while
+            <strong>vertices</strong>. Vertices are individual points, while
             edges are pairs of points represented by lines.
+        </p>
+        <p>
+            You may see the terms <strong>node</strong> and
+            <strong>line</strong> also used to describe graphs. They are equivalent
+            to vertex and edge, respectively.
         </p>
         <p>
             Below is an example of a graph with three edges and four vertices.
@@ -114,27 +122,22 @@
         </p>
         <p>
             You click to create a vertex and drag to create an edge. Dragging
-            between two vertices will create a edge. To move vertices, you can
-            click the arrow icon and then drag them around the canvas. You can
-            also click the trash icon to switch to delete mode where you can
-            click edges and nodes to remove them.
-        </p>
-        <p>
-            You may see the terms <strong>node</strong> and
-            <strong>line</strong> used to describe graphs. They are equivalent to
-            vertex and edge respectively.
+            between two vertices will create an edge between them. To move
+            vertices, you can click the arrow icon and then drag them around the
+            canvas. You can also click the trash icon to switch to delete mode,
+            where you can click edges and nodes to remove them.
         </p>
 
         <h1>Formal Definition of a Graph</h1>
         <p>
             We can define a graph G with two sets. The set V(G) is the set of
-            vertices in the graph and the set E(G) is the set of edges in the
+            vertices in the graph, and the set E(G) is the set of edges in the
             graph.
         </p>
         <div class="background">
             <p>
                 <strong>Refresher:</strong> A <strong>set</strong> is an unordered
-                collection of unique items. Sets are often denoted with capital letters
+                collection of unique items. Sets are often denoted with capital letters,
                 and their items are listed in curly braces. For example, a set with
                 three integers could be written in the following way:
             </p>
@@ -202,12 +205,12 @@
             We consider two vertices
             <strong>joined</strong> if there exists a chain starting at one vertex
             and ending at the other. In the above graph, chain C shows that u and
-            w are joined
+            w are joined.
         </p>
         <p>
             We consider a graph <strong>connected</strong> if there is a chain between
             any pair of vertices in the graph. The above graph is an example of a
-            connected graph
+            connected graph.
         </p>
         <p>
             Note that a graph being connected does not imply that it is
@@ -219,7 +222,7 @@
         <div class="background">
             <p>
                 <strong>Challenge: </strong> Try to prove that all complete graphs
-                are connected. Think about what chain might exists between any two
+                are connected. Think about what chains might exist between any two
                 vertices in a complete graph.
             </p>
         </div>
@@ -245,10 +248,10 @@
             undirected graphs.
         </p>
         <p>
-            Recall that for undirected graphs we say one vertex joins another if
-            there is a valid chain between them. For directed graphs, we say one
-            vertex <strong>reaches</strong> another if there is a valid path between
-            them.
+            Recall that for undirected graphs, we say one vertex joins another
+            if there is a valid chain between them. For directed graphs, we say
+            one vertex <strong>reaches</strong> another if there is a valid path
+            between them.
         </p>
         <p>
             For any directed graph, we can create an underlying <strong
@@ -266,21 +269,21 @@
         />
         <p>
             Note that because chains travel through adjacent vertices, there may
-            be some chains in this undirected graph which do not have equivalent
-            paths in the directed graph.
+            be some chains in this undirected graph without equivalent paths in
+            the directed graph.
         </p>
         <p>
             This leads to two definitions of connectedness for directed graphs.
         </p>
         <li>
             We consider a directed graph to be <strong>weakly connected</strong>
-            if for any two vertices u and v there exists a chain between them in
+            if, for any two vertices u and v, there exists a chain between them in
             the equivalent undirected graph.
         </li>
         <li>
             We consider a directed graph to be <strong
                 >strongly connected</strong
-            > if for any two vertices u and v there exists a path from v to u and
+            > if, for any two vertices u and v, there exists a path from v to u and
             another path from u to v in the directed graph.
         </li>
         <h1>Unilaterally Connected Proof</h1>
@@ -290,9 +293,9 @@
             > graphs.
         </p>
         <p>
-            A directed graph is <strong>unilaterally connected</strong> if for any
-            pair of vertices u and v there is either a path from v to u or from u
-            to v. Note that this definition of connectedness is more strict than
+            A directed graph is <strong>unilaterally connected</strong> if, for any
+            pair of vertices u and v, there is either a path from v to u or from
+            u to v. Note that this definition of connectedness is more strict than
             weak connectedness but less strict than strong connectedness
         </p>
         <p>
@@ -308,7 +311,7 @@
         />
         <p>
             A <strong>root vertex</strong> in a directed graph is any vertex which
-            reaches all other vertices in the graph. With these definitions we can
+            reaches all other vertices in the graph. With these definitions, we can
             finally prove the following:
         </p>
         <p>
@@ -317,17 +320,17 @@
         </p>
         <p>
             <strong>Proof: </strong> The simplest way to approach this problem is
-            to try and come up with an alogrithm for finding the root vertex. If
-            we can prove that this algorithm can always find a root vertex, then
-            we have proven the above theorem.
+            to try to come up with an alogrithm for finding the root vertex. If we
+            can prove that this algorithm can always find a root vertex, then we
+            have proven the above theorem.
         </p>
         <p>
             <strong>Algorithm: </strong> Let's start with an arbitrary vertex v<sub
                 >0</sub
             >
             in V(G) as our candidate for the root vertex. Let's sort all the other
-            vertices in G into two sets. One containing all the vertices which v
-            reaches (V<span class="sub">0</span><span class="sup">r</span>) and
+            vertices in G into two sets: one containing all the vertices which v
+            reaches (V<span class="sub">0</span><span class="sup">r</span>), and
             one containing all the vertices which v doesn't reach (V<span
                 class="sub">0</span
             ><span class="sup">r'</span>).
@@ -336,7 +339,7 @@
             <p>
                 <strong>Refresher:</strong> In set theory, a tick mark indicates
                 the complement of a set, which is a set containing all the elements
-                which are not in the original set.
+                that are not in the original set.
             </p>
             <p>
                 In our case, V<span class="sub">0</span><span class="sup"
@@ -346,12 +349,12 @@
                 ><span class="sup">r</span>.
             </p>
         </div>
-        <p>Now we can consider the following cases:</p>
+        <p>Now, we can consider the following cases:</p>
         <li>
-            If V<span class="sub">0</span><span class="sup">r'</span> is empty
+            If V<span class="sub">0</span><span class="sup">r'</span> is empty,
             then v<span class="sub">0</span>
-            reaches all other edges and v<span class="sub">0</span> is our root vertex
-            and we are done.
+            reaches all other edges, and v<span class="sub">0</span> is our root
+            vertex so we are done.
         </li>
         <li>
             Otherwise, we can take any vertex from V<span class="sub">0</span
@@ -370,7 +373,7 @@
             We can show that in the following way:
         </p>
         <p>
-            Remember a vertex reaches another vertex if there is a path between
+            Remember, a vertex reaches another vertex if there is a path between
             them. We know that there is a path between v<span class="sub"
                 >0</span
             >
@@ -388,16 +391,16 @@
         <p>
             Now we repeat this process with v<span class="sub">2</span>, v<span
                 class="sub">3</span
-            >, etc until we eventually land on a vertex which reaches all
-            others, this vertex is the root.
+            >, etc. until we eventually land on a vertex that reaches all
+            others; this vertex is the root.
         </p>
 
         <p>
             Use the demo below to visualize the algorithm. When you click on a
-            vertex that vertex will become the candidate for the root vertex and
-            will be colored red. Any vertex which it can reach will be colored
-            purple. By clicking the next button, the algorithm will pick the
-            next root candidate. Feel free to make your own graph and to try
+            vertex, that vertex will become the candidate for the root vertex
+            and will be colored red. Any vertex which it can reach will be
+            colored purple. By clicking the next button, the algorithm will pick
+            the next root candidate. Feel free to make your own graph and to try
             finding the root with the algorithm.
         </p>
 
@@ -411,26 +414,26 @@
 
         <p>
             If you're having trouble understanding the algorithm, try to think
-            of it like walking backwards on a path. No matter where you start,
-            if you try walking back down every possible path, you will
-            eventually find the start of the path, which is our root vertex.
+            of it like walking backward on a path. No matter where you start, if
+            you try walking back down every possible path, you will eventually
+            find the start of the path, which is our root vertex.
         </p>
 
         <p>
             With this algorithm described, we now just need to prove that it
             will always find a root vertex for a finite unilaterally connected
-            graph. First we will show that the algorithm will always finish and
+            graph. First, we will show that the algorithm will always finish and
             return a vertex for a unilaterally connected graph:
         </p>
         <p>
             Let n be the size of the set V(G). I will show that the algorithm
             will finish in at most n steps. If you're familiar with big O
-            notation this would be an O(n) algorithm.
+            notation, this would be an O(n) algorithm.
         </p>
         <p>
             At each step of the algorithm, one vertex is considered as the root
             candidate. We know that if the algorithm moves to a new vertex, that
-            new vertex must not be a vertex which reaches the current vertex.
+            new vertex must not be a vertex that reaches the current vertex.
             We've already shown that every subsequent vertex the algorithm
             considers reaches all previous vertices it has considered. Thus, it
             is impossible for the algorithm to return to a vertex it has already
@@ -439,8 +442,8 @@
         <p>
             If the algorithm must consider a new vertex at each step, and there
             are n total vertices, the algorithm can have a maximum of n steps
-            before finishing. Thus, for a finite graph the algorithm will always
-            finish and return a vertex.
+            before finishing. Thus, for a finite graph, the algorithm will
+            always finish and return a vertex.
         </p>
         <p>
             Now that we know the algorithm will always finish, we need to prove
@@ -450,16 +453,17 @@
         <div class="background">
             <p>
                 <strong>Refresher:</strong> in a proof by contradiction, we state
-                the inverse (or the opposite) of what we want to prove, and then
-                show that this opposite statement must be false. This then means
-                that our original statement is true.
+                the inverse (or the opposite) of what we want to prove and then show
+                that this opposite statement must be false. This then means that
+                our original statement is true.
             </p>
         </div>
         <p>
             Let's say our algorithm finishes, returning some vertex v<span
                 class="sub">i</span
-            >, and there is still some vertex v<span class="sub">j</span> which
-            v<span class="sub">i</span>
+            >, and there is still some vertex v<span class="sub">j</span> that v<span
+                class="sub">i</span
+            >
             does not reach. In that case, we know that v<span class="sub"
                 >j</span
             >
@@ -472,7 +476,7 @@
             because the set V<span class="sub">i</span><span class="sup"
                 >r'</span
             > would not have been empty. Thus, if our algorithm finishes, it is impossible
-            for it to return a vertex which is not the root.
+            for it to return a vertex that is not the root.
         </p>
         <p>
             Because we know that the algorithm will always finish and find a

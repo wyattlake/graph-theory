@@ -14,6 +14,7 @@ p {
     flex-direction: column;
     width: 700px;
     align-items: flex-start;
+    padding-top: 70px;
 }
 
 .body {
@@ -94,10 +95,54 @@ img {
     display: flex;
     flex-direction: row;
     align-items: center;
-    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.graphEquation > * {
+    margin: 20px 0px;
 }
 
 .graphEquation > p {
     font-size: 40px;
-    margin-bottom: 0;
+}
+
+.equationSection {
+    margin-bottom: 20px;
+}
+
+.mainButton {
+    background-color: white;
+    border: 2px solid #d9d9d9;
+    border-radius: 5px;
+    font-size: 18px;
+    padding: 10px 20px;
+}
+
+.finalEquation {
+    font-size: 20px;
+    font-weight: 400;
+}
+
+.code {
+    font-family: "Roboto Mono";
+    font-size: 18px;
+    color: #585858;
+}
+
+.code > strong {
+    color: black;
+}
+
+table {
+    width: 100%;
+    margin-bottom: 30px;
+}
+
+table,
+th,
+td {
+    border: 1px solid black;
+    border-collapse: collapse;
+    padding: 20px;
+    background-color: rgb(250, 250, 250);
 }
