@@ -1,4 +1,4 @@
-import adapter from "@sveltejs/adapter-static-digitalocean";
+import adapter from "svelte-adapter-static-digitalocean";
 import { vitePreprocess } from "@sveltejs/kit/vite";
 
 /** @type {import('@sveltejs/kit').Config} */
