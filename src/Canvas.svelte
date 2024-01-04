@@ -212,7 +212,6 @@
 
         addEventListener("mousedown", (event) => {
             let clickPos = getCanvasPosition(event);
-            console.log(clickPos);
             if (clickPos != null) {
                 let clickedNode: Node | null = null;
                 let closestDistance = Infinity;
